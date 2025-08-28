@@ -54,7 +54,7 @@ export const getAllProjectsController = async (req, res) => {
     }
 
     const project = await getAllProjectsByUserId(user);
-    console.log(project);
+    // console.log(project);
     if (!project || project.length === 0) {
       return res.status(404).json({ error: "No projects found for this user" });
     }
@@ -118,10 +118,12 @@ export const getProjectsController = async (req, res) => {
 
     const project = await projectModel
       .findById(projectId)
-      .populate("users", "email");
+      .populate("users", "email username");
     if (!project) {
       return res.status(404).json({ error: "Project not found" });
     }
+
+    // console.log("Project Data at backend: ", project);
 
     // Check if logged-in user is in the project's users array
     const loggedInUser = await User.findOne({ email: req.user.email });
@@ -134,7 +136,6 @@ export const getProjectsController = async (req, res) => {
         .status(403)
         .json({ error: "Access denied: not a project member" });
     }
-
     return res.status(200).json({
       message: "Project retrieved successfully",
       project,
@@ -176,7 +177,9 @@ export const deleteProjectController = async (req, res) => {
       (user) => user.toString() === userId
     );
     if (!isUserInProject) {
-      return res.status(403).json({ error: "Access denied: not a project member" });
+      return res
+        .status(403)
+        .json({ error: "Access denied: not a project member" });
     }
 
     // Delete related messages
@@ -185,7 +188,9 @@ export const deleteProjectController = async (req, res) => {
     // Delete the project
     await projectModel.findByIdAndDelete(projectId);
 
-    return res.status(200).json({ message: "Project and related messages deleted successfully" });
+    return res
+      .status(200)
+      .json({ message: "Project and related messages deleted successfully" });
   } catch (error) {
     console.error("Error deleting project:", error);
     return res.status(500).json({ error: "Internal server error" });

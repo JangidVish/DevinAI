@@ -16,8 +16,17 @@ export const createUserController = async (req, res) => {
     const user = await createUser(req.body);
     delete user.password; // Remove password from response
     const token = await user.generateJWT();
-    return res.status(200).json({ token: token, user });
+    const userObj = user.toObject();
+    delete userObj.password;
+    return res
+      .cookie("token", token, {
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 * 24,
+      })
+      .status(200)
+      .json({ user: userObj, token: token });
   } catch (error) {
+    console.log(error);
     return res.status(400).json({ error: error.message });
   }
 };
@@ -31,9 +40,19 @@ export const loginController = async (req, res) => {
 
   try {
     const user = await loginUser(req.body);
+
     const token = await user.generateJWT();
-    delete user.password; // Remove password from response
-    return res.status(200).json({ token: token, user: user });
+    // console.log("Token generated when login: ", token);
+
+    const userObj = user.toObject();
+    delete userObj.password;
+    return res
+      .cookie("token", token, {
+        httpOnly: true,
+        maxAge: 1000 * 60 * 60 * 24,
+      })
+      .status(200)
+      .json({ user: userObj, token });
   } catch (error) {
     return res.status(400).json({ error: error.message });
   }
@@ -82,5 +101,11 @@ export const getAllUserController = async (req, res) => {
   }
 };
 export const profileController = async (req, res) => {
-  return res.status(200).json(req.user);
+  try {
+    // console.log("Content in profile route ", req.user);
+    return res.status(200).json(req.user);
+  } catch (error) {
+    console.error("profileController Error:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
 };

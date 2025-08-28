@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, { useState, useEffect, useContext, useRef, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import userAvatar from '../assets/userAvatar.webp';
 import AddUserPopUp from '../components/AddUserPopUp';
@@ -6,252 +6,231 @@ import api from '../config/axios';
 import { initializeSocket, receiveMessage, sendMessage } from '../config/socket';
 import { UserContext } from '../context/user.context';
 import Markdown from 'markdown-to-jsx';
-import hljs from 'highlight.js';
 import { getWebContainer } from '../config/webContainer';
+import toast from 'react-hot-toast';
+import hljs from "highlight.js";
+import "highlight.js/styles/github-dark.css"; // pick any theme you like
 
-function SyntaxHighlightedCode({ className, children, ...props }) {
+const SyntaxHighlightedCode = ({ className = '', children, ...props }) => {
   const ref = useRef(null);
+  console.log(children)
 
   useEffect(() => {
-    if (ref.current && className?.includes('lang-') && window.hljs) {
-      window.hljs.highlightElement(ref.current);
-      ref.current.removeAttribute('data-highlighted');
+    if (ref.current) {
+      if (className && className.startsWith("language-")) {
+        // highlight based on language (from markdown fence, e.g. ```js)
+        hljs.highlightElement(ref.current);
+      } else {
+        // fallback: auto-detect
+        const result = hljs.highlightAuto(children);
+        ref.current.innerHTML = result.value;
+      }
     }
-  }, [className, children]);
+  }, [children, className]);
 
-  return <code {...props} ref={ref} className={className}>{children}</code>;
-}
+  return (
+    <code ref={ref} className={className} {...props}>
+      {children}
+    </code>
+  );
+};
+
+const useScrollToBottom = (ref, dependency) => {
+  useEffect(() => {
+    if (ref.current) {
+      const box = ref.current;
+      const isAtBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 70;
+      if (isAtBottom) box.scrollTop = box.scrollHeight;
+    }
+  }, [dependency]);
+};
 
 const Project = () => {
+  const { user } = useContext(UserContext);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useContext(UserContext);
   const initialProject = location.state?.project;
   const [project, setProject] = useState(initialProject);
   const [sidePanel, setSidePanel] = useState(false);
   const [addCollaborator, setAddCollaborator] = useState(false);
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState('');
-  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [fileTree, setFileTree] = useState({});
   const [currentFile, setCurrentFile] = useState(null);
   const [openFiles, setOpenFiles] = useState([]);
   const [webContainer, setWebContainer] = useState(null);
   const [logs, setLogs] = useState([]);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const messageBox = useRef(null);
 
-  // Redirect if project is missing
-  useEffect(() => {
-    if (!project) {
-      navigate('/');
-    }
-  }, [project, navigate]);
+  useEffect(() => { if (!project) navigate('/'); }, [project, navigate]);
 
-  // Fetch latest project data
-  const fetchProject = async () => {
+  const fetchProject = useCallback(async () => {
     try {
       const res = await api.get(`/project/get-project/${project._id}`);
+ 
       setProject(res.data.project);
     } catch (err) {
-      console.error('Failed to refresh project data:', err);
-      setLogs((prev) => [...prev, `Error fetching project: ${err.message}`]);
+      console.error('Project fetch error:', err);
+      setLogs(prev => [...prev, `Error: ${err.message}`]);
     }
-  };
+  }, [project?._id]);
 
-  // Fetch historical messages
-  const fetchMessages = async () => {
+  useEffect(() => {
+    fetchProject();
+  
+  }, [])
+
+
+  const fetchMessages = useCallback(async () => {
     try {
-      setIsLoadingMessages(true);
+      setIsLoadingMessages(true)
       const res = await api.get(`/project/${project._id}/messages`);
-      const fetchedMessages = Array.isArray(res.data) ? res.data : [];
-      setMessages((prev) => {
-        const existingIds = new Set(prev.map((msg) => msg._id));
-        const newMessages = fetchedMessages.filter((msg) => !existingIds.has(msg._id));
-        return [...prev, ...newMessages].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+      const newMessages = Array.isArray(res.data) ? res.data : [];
+      
+      setMessages(prev => {
+        const existingIds = new Set(prev.map(msg => msg._id));
+        const filtered = newMessages.filter(msg => !existingIds.has(msg._id));
+        return [...prev, ...filtered].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
       });
     } catch (err) {
-      console.error('Failed to fetch messages:', err);
-      setMessages([]);
-      setLogs((prev) => [...prev, `Error fetching messages: ${err.message}`]);
-    } finally {
-      setIsLoadingMessages(false);
-    }
-  };
-
-  // Fetch messages on mount or when project._id changes
-  useEffect(() => {
-    if (project?._id) {
-      fetchMessages();
+      toast.error('Messages fetch error:', err);
+      setLogs(prev => [...prev, `Error: ${err.message}`]);
+    }finally{
+      setIsLoadingMessages(false)
     }
   }, [project._id]);
 
-  // Initialize socket and WebContainer
+  useEffect(() => { if (project?._id) fetchMessages(); }, [project._id, fetchMessages]);
+
   useEffect(() => {
-    if (!project?._id) {
-      console.warn('project._id is missing, skipping socket and WebContainer setup');
-      return;
-    }
+    if (!project?._id) return;
 
     const socket = initializeSocket(project._id);
-
-    socket.on('connect', () => {
-      console.log(`WebSocket connected for project ${project._id}`);
-    });
-    socket.on('connect_error', (err) => {
-      console.error('WebSocket connection failed:', err);
-      setLogs((prev) => [...prev, `WebSocket error: ${err.message}`]);
-    });
+    socket.on('connect_error', err => setLogs(prev => [...prev, `Socket error: ${err.message}`]));
 
     const mountFileTree = async (container, tree) => {
-      if (Object.keys(tree).length === 0) {
-        console.warn('fileTree is empty, skipping mount');
-        setLogs((prev) => [...prev, 'Error: fileTree is empty']);
-        return;
-      }
+      if (!Object.keys(tree).length) return;
       try {
-        console.log('Mounting fileTree:', JSON.stringify(tree, null, 2));
         await container.mount(tree);
-        console.log('✅ File tree mounted');
-        setLogs((prev) => [...prev, 'File tree mounted successfully']);
+        setLogs(prev => [...prev, 'Mounted file tree']);
       } catch (err) {
-        console.error('Failed to mount file tree:', err);
-        setLogs((prev) => [...prev, `Error mounting file tree: ${err.message}`]);
+        setLogs(prev => [...prev, `Mount error: ${err.message}`]);
       }
     };
 
     if (!webContainer) {
-      getWebContainer()
-        .then(async (container) => {
-          await mountFileTree(container, fileTree);
-          setWebContainer(container);
-          container.on('server-ready', (port, url) => {
-            console.log(`Server running at ${url}`);
-            setLogs((prev) => [...prev, `Server running at ${url}`]);
-          });
-          console.log('✅ Container started');
-        })
-        .catch((err) => {
-          console.error('Failed to get WebContainer:', err);
-          setLogs((prev) => [...prev, `WebContainer error: ${err.message}`]);
-        });
+      getWebContainer().then(async container => {
+        await mountFileTree(container, fileTree);
+        setWebContainer(container);
+        container.on('server-ready', (port, url) => setLogs(prev => [...prev, `Server: ${url}`]));
+      }).catch(err => setLogs(prev => [...prev, `WebContainer error: ${err.message}`]));
     }
 
-    const handleMessage = async(data) => {
-      let message;
-      try {
-        if (data.sender._id === "ai") {
-      const message = JSON.parse(data.message);
-      console.log("AI message:", message);
+const handleMessage = (data) => {
+  if(data.sender===user._id) return;
+  console.log("Message at handle message: ", data);
+  if (data.sender?._id === 'ai') {
+    try {
+      const aiData = JSON.parse(data.message);
+      if (aiData.fileTree) {
+        setFileTree(aiData.fileTree);
+      }
+      console.log(data)
+    } catch (error) {
+      toast.error("Error while handling AI message: " + error.message);
+    }
+  }
+setMessages((prev) => {
+  const newMessage = {
+    ...data,
+    _id: data._id || `${data.sender._id}-${Date.now()}-${Math.random()}`,
+  };
 
-      const normalizedTree = Object.fromEntries(
-        Object.entries(fileTree).map(([key, value]) => [[key], value])
-      );
+  const exists = prev.some((m) => m._id === newMessage._id);
+  if (exists) return prev;
 
-      await webContainer?.mount(normalizedTree); // ✅ re-mount on AI reply
+  return [...prev, newMessage].sort(
+    (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
+  );
+});
 
  
-      if (message.fileTree) {
-        setFileTree(message.fileTree);
-        if (webContainer) {
-          mountFileTree(webContainer, message.fileTree);
-        }
-      }
-      setMessages((prevMessages) => [...prevMessages, data]);
-    } else {
-      setMessages((prevMessages) => [...prevMessages, data]);
-    }
-      } catch (err) {
-        console.error('Invalid JSON message received:', err);
-        setLogs((prev) => [...prev, `Invalid message: ${data.message}`]);
-        return;
-      }
-
-
-      setMessages((prev) => {
-        if (data._id && prev.some((msg) => msg._id === data._id)) {
-          return prev;
-        }
-        return [...prev, data].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-      });
-    };
+};
 
     receiveMessage('project-message', handleMessage);
+    return () => socket.disconnect();
+  }, [project._id]);
 
-    return () => {
-      if (socket) {
-        socket.off('project-message', handleMessage);
-        socket.disconnect();
-        console.log('WebSocket disconnected');
-      }
-    };
-  }, [project._id, webContainer, fileTree]);
-
-  // Scroll to bottom when new messages arrive
-  useEffect(() => {
-    const box = messageBox.current;
-    if (box && messages.length > 0) {
-      const isAtBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 70;
-      if (isAtBottom) {
-        box.scrollTop = box.scrollHeight;
-      }
-    }
-  }, [messages]);
+  useScrollToBottom(messageBox, messages);
 
   const send = () => {
-    if (!message.trim()) return;
-
     const userMessage = {
       _id: crypto.randomUUID(),
       message,
       sender: user._id,
-      timestamp: new Date(Date.now() + 500).toISOString(),
+      timestamp: new Date().toISOString(),
     };
+    console.log("Message send to socket: ", userMessage)
 
-    setMessages((prev) => [...prev, userMessage].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)));
+    setMessages(prev => [...prev, userMessage]);
     sendMessage('project-message', userMessage);
     setMessage('');
   };
 
-  const getSenderDisplayName = (senderId) => {
+  
+  const getSenderDisplayName = useCallback(senderId => {
+    // console.log(project)
     if (senderId === user._id) return 'You';
-    const senderUser = project.users?.find((u) => u._id === senderId);
-    return senderUser?.email || senderId || 'Unknown';
-  };
+    const senderUser = project.users?.find(u => u._id === senderId);
+    return senderUser?.username || 'Unknown';
+  }, [project.users]);
+
+const writeAiMessage = (message) => {
+  try {
+    const parsed = JSON.parse(message);
+    return (
+      <Markdown
+        options={{
+          overrides: {
+            code: {
+              component: SyntaxHighlightedCode,
+            },
+            pre: {
+              component: (props) => (
+                <pre {...props} className="hljs rounded-lg p-2 bg-slate-900 overflow-x-auto" />
+              ),
+            },
+          },
+        }}
+      >
+        {parsed.text}
+      </Markdown>
+    );
+  } catch (error) {
+    console.error("Error while writing AI message: ", error);
+    return <div>Error rendering AI message</div>;
+  }
+};
+
+
+  
 
   const handleDelete = async () => {
     try {
       await api.delete(`/project/delete-project/${project._id}`);
-      console.log('Successfully deleted project');
-      navigate('/project');
+      navigate('/');
     } catch (err) {
-      console.error('Error deleting project:', err);
-      setLogs((prev) => [...prev, `Error deleting project: ${err.message}`]);
+      setLogs(prev => [...prev, `Delete error: ${err.message}`]);
     }
-  };
-
-  const writeAiMessage = (message) => {
-    let messageObject;
-    try {
-      messageObject = JSON.parse(message);
-    } catch (err) {
-      console.error('Invalid AI message:', err);
-      return <div>Error rendering AI message</div>;
-    }
-    return (
-      <div>
-        <Markdown
-          children={messageObject.text}
-          options={{ overrides: { code: SyntaxHighlightedCode } }}
-        />
-      </div>
-    );
   };
 
   if (!project) return null;
 
+
   return (
     <main className="h-screen w-screen flex">
-      <section className="left h-full max-w-92 bg-zinc-950/90 flex flex-col justify-between">
+      <section className="left h-full min-w-92 bg-zinc-950/90 flex flex-col justify-between">
         <header className="flex justify-between items-center p-4 w-full bg-indigo-400">
           <h1 className="text-xl uppercase font-bold text-white font-serif">
             {typeof project?.name === 'object' ? project.name.name : project.name}
@@ -261,7 +240,7 @@ const Project = () => {
           </button>
         </header>
 
-        <div className="conversation-area flex-grow flex flex-col p-2">
+        <div className="conversation-area flex-grow flex flex-col p-2 max-w-100">
           {isLoadingMessages ? (
             <div className="flex justify-center items-center h-full text-white">Loading messages...</div>
           ) : messages.length === 0 ? (
@@ -302,7 +281,9 @@ const Project = () => {
             <input
               type="text"
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={(e) => {
+                setMessage(e.target.value)
+              }}
               placeholder="Enter message"
               className="focus:outline-none flex-grow bg-transparent text-white"
             />
@@ -312,12 +293,13 @@ const Project = () => {
           </div>
         </div>
 
-        <div
+            <div
           className={`sidePanel w-full h-full absolute bg-gradient-to-b from-indigo-400/80 to-blue-200/80 transition-all left-[-100%] ${
             sidePanel ? 'translate-x-full' : ''
           } flex flex-col`}
         >
-          <header className="flex justify-between p-4 w-full bg-indigo-400 text-white items-center">
+
+          <header className="flex justify-between p-4  bg-indigo-400 text-white items-center">
             <button className="text-lg font-serif flex items-center gap-2" onClick={() => setAddCollaborator(true)}>
               <i className="ri-user-add-fill text-white" /> Add Collaborators
             </button>
@@ -333,7 +315,7 @@ const Project = () => {
                     <img src={userAvatar} alt="avatar" />
                   </div>
                 </div>
-                <div className="name">{u.email || 'user@gmail.com'}</div>
+                <div className="name">{u.username || 'user@gmail.com'}</div>
               </div>
             ))}
           </div>
@@ -356,7 +338,7 @@ const Project = () => {
         )}
       </section>
 
-      <section className="right bg-red-200 flex-grow h-full flex">
+      <section className="right bg-slate-950 flex-grow h-full flex">
         <div className="explorer h-full max-w-64 min-w-52 bg-slate-900">
           <div className="file-tree flex flex-col gap-2">
             {Object.keys(fileTree).map((file, index) => (
@@ -384,7 +366,7 @@ const Project = () => {
                         setLogs((prev) => [...prev, 'Error: WebContainer not initialized']);
                         return;
                       }
-                      console.log('File tree:', JSON.stringify(fileTree, null, 2));
+                      // console.log('File tree:', JSON.stringify(fileTree, null, 2));
                       await webContainer.mount(fileTree);
                       setLogs((prev) => [...prev, 'File tree mounted']);
 
@@ -394,7 +376,7 @@ const Project = () => {
                           write(chunk) {
                             if (!/[|\\/-]/.test(chunk)) {
                               setLogs((prev) => [...prev, `npm install: ${chunk}`]);
-                              console.log(chunk)
+                              // console.log(chunk)
                             }
                           },
                         })

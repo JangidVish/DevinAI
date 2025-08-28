@@ -7,7 +7,7 @@ import cookieParser from "cookie-parser";
 import userRoute from "./routes/user.route.js";
 import projectRoute from "./routes/project.route.js";
 import aiRoute from "./routes/ai.routes.js";
-import createRedisClient from "./services/redis.service.js";
+
 import { Server } from "socket.io";
 import cors from "cors";
 import http from "http";
@@ -17,6 +17,10 @@ import mongoose from "mongoose";
 import projectModel from "./model/project.model.js";
 import Message from "./model/message.model.js";
 import { generateResult } from "./services/ai.service.js";
+import {
+  getresultaiController,
+  getResultForSocket,
+} from "./controllers/ai.controller.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -36,7 +40,7 @@ app.use("/ai", aiRoute);
 
 app.use(morgan("dev")); // Logging middleware for development
 
-const redisClient = createRedisClient();
+// const redisClient = createRedisClient();
 
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -49,30 +53,48 @@ io.use(async (socket, next) => {
   try {
     const token =
       socket.handshake.auth?.token ||
-      socket.handshake.headers.authorization?.split(" ")[1];
+      (socket.handshake.headers.authorization
+        ? socket.handshake.headers.authorization.split(" ")[1]
+        : null);
     const projectId = socket.handshake.query?.projectId;
-    // console.log(token);
+
+    // // Debug logs
+    // console.log("Socket handshake token:", token);
+    // console.log("Socket handshake projectId:", projectId);
 
     if (!mongoose.Types.ObjectId.isValid(projectId)) {
+      console.log("Invalid projectId received:", projectId);
       return next(new Error("Invalid projectId"));
     }
 
     socket.project = await projectModel.findById(projectId);
+    if (!socket.project) {
+      console.log("Project not found for projectId:", projectId);
+      return next(new Error("Project not found"));
+    }
 
     if (!token) {
+      console.log("No token received");
       return next(new Error("Authentication error"));
     }
 
-    const decoded = jwt.verify(token, process.env.secret_key);
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.secret_key);
+    } catch (err) {
+      console.log("JWT verification failed:", err.message);
+      return next(new Error("Authentication error"));
+    }
 
     if (!decoded) {
+      console.log("JWT verification returned null/undefined");
       return next(new Error("Authentication error"));
     }
 
     socket.user = decoded;
-
     next();
   } catch (error) {
+    console.log("Socket.IO middleware error:", error);
     next(error);
   }
 });
@@ -80,18 +102,20 @@ io.use(async (socket, next) => {
 io.on("connection", (socket) => {
   // socket.roomId = socket.project._id.toString();
 
-  console.log("a user connected");
+  // console.log("a user connected");
   socket.roomId = socket.project._id.toString();
   socket.join(socket.roomId);
 
   socket.on("project-message", async (data) => {
+    console.log("Received project-message:", data);
     const { message, sender } = data;
 
     const messageIncludesAi = message.includes("@ai");
 
     if (messageIncludesAi) {
       const prompt = message.replace("@ai", " ");
-      const result = await generateResult(prompt);
+      const result = await getResultForSocket(prompt);
+      console.log("message at socket emit:", result);
 
       io.to(socket.roomId).emit("project-message", {
         message: result,

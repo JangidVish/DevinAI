@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../config/axios';
+import toast from 'react-hot-toast';
 
 
 const AddUserPopUp = ({ projectId, onClose, onSuccess}) => {
@@ -17,14 +18,14 @@ const AddUserPopUp = ({ projectId, onClose, onSuccess}) => {
       try {
         const response = await api.get(`/user/all/${projectId}`);
         if (!response || !response.data) {
-          console.log("Error while fetching users");
+          toast.error("Error while fetching users");
           return;
         }
         setAllUser(response.data);
         // onSuccess(); 
         // console.log("Fetched users:", response.data);
       } catch (error) {
-        console.log("Error while fetching users:", error);
+        toast.error("Error while fetching users:", error);
       } finally {
         setLoading(false);
       }
@@ -42,13 +43,13 @@ const AddUserPopUp = ({ projectId, onClose, onSuccess}) => {
       )
 
       if(!response){
-        console.log("Failed to add user: ")
+        toast.error("Failed to add user: ")
       }
 
-      console.log("User Added Successfully");
+      toast.success("User Added Successfully");
       onSuccess()
       } catch (error) {
-        console.log("Error while adding user: ",error)  
+        toast.error("Error while adding user: ",error)  
       }
 
     } 

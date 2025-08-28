@@ -2,7 +2,8 @@ import React from 'react'
 import LoginImage from '../assets/Login-amico.svg'; 
 import api from '../config/axios';
 import { useNavigate } from 'react-router-dom';
-import { UserContext } from '../context/user.context.jsx';
+
+import toast, { Toaster } from 'react-hot-toast';
 
 
 const Login = () => {
@@ -10,7 +11,7 @@ const Login = () => {
     const [password, setPassword] = React.useState("");
         const navigate = useNavigate();
 
-            const {setUser} = React.useContext(UserContext);
+
   
 
     const handleSubmit = async(e) => {
@@ -24,23 +25,27 @@ const Login = () => {
             });
 
             if(!response || !response.data) {
+              toast.error("Invalid response from server")
                 throw new Error("Invalid response from server");
+                
             }
+            console.log("Response when login: ", response)
        
 
-            if (response.status === 200) {
-                localStorage.setItem("token", response.data.token); // Store token in localStorage
-                console.log(response.data);
-                setUser(response.data.user); // Set user in context
+     
+                localStorage.setItem("token", response.data.token); 
+                toast.success("Login Successfull")
+       
                 navigate("/");
-            }
         } catch (error) {
-            console.error("Login failed:", error);
+            console.error("Login failed:", error.response.data.error);
+            toast.error(`Login Failed: ${error.response.data.error}` )
         }
         console.log("Login form submitted");
     }   
   return (
-    <div className="flex items-center justify-center h-screen w-screen p-4">
+    <div className="flex items-center justify-center h-screen w-screen p-4 bg-zinc-800">
+      <Toaster />
         <div className="left w-1/2 p-4 flex items-center justify-center">
         <img src={LoginImage} alt="Login Illustration" className='w-3/4' />
         </div>
@@ -49,24 +54,24 @@ const Login = () => {
             Login
           </h1>
           <p className="text-center mt-4">Please enter your credentials to login.</p>
-            <form className="flex flex-col items-center mt-6">
+            <form className="flex flex-col items-center mt-6 w-full">
                 <input
                 type="email"
                 placeholder="email"
-                className="mb-4 p-2 border border-gray-300 rounded"
+                className="mb-4 p-2 border border-gray-300 rounded w-64"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 />
                 <input
                 type="password"
                 placeholder="Password"
-                className="mb-4 p-2 border border-gray-300 rounded"
+                className="mb-4 p-2 border border-gray-300 rounded w-64"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 />
                 <button
                 type="submit"
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-64"
                 onClick={handleSubmit}
                 >
                 Login

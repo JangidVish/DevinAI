@@ -1,6 +1,6 @@
 import socket from "socket.io-client";
 
-var socketInstance = null;
+let socketInstance = null;
 
 export const initializeSocket = (projectId) => {
   socketInstance = socket(
@@ -19,9 +19,11 @@ export const initializeSocket = (projectId) => {
 };
 
 export const receiveMessage = (eventName, cb) => {
+  // console.log("Receiving message via socket: ", eventName);
   socketInstance.on(eventName, cb);
 };
 
 export const sendMessage = (eventName, data) => {
+  // console.log("Sending message via socket: ", data);
   socketInstance.emit(eventName, data);
 };
