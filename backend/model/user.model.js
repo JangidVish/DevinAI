@@ -22,6 +22,11 @@ const userSchema = new mongoose.Schema({
     required: true,
     select: false,
   },
+  role: {
+    type: String,
+    enum: ["user", "admin"],
+    default: "user",
+  },
 });
 
 userSchema.pre("save", async function (next) {
@@ -38,7 +43,12 @@ userSchema.methods.isValidPassword = async function (password) {
 
 userSchema.methods.generateJWT = async function () {
   return jwt.sign(
-    { email: this.email, username: this.username, _id: this._id },
+    {
+      email: this.email,
+      username: this.username,
+      _id: this._id,
+      role: this.role,
+    },
     process.env.secret_key,
     {
       expiresIn: "1d",

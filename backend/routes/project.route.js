@@ -6,6 +6,7 @@ import {
   getAllProjectsController,
   getMessagesController,
   getProjectsController,
+  removeCollaborater,
 } from "../controllers/project.controller.js";
 import { body } from "express-validator";
 
@@ -33,5 +34,6 @@ route.post(
 route.get("/get-project/:projectId", getProjectsController);
 route.get("/:projectId/messages", getMessagesController);
 route.delete("/delete-project/:projectId", deleteProjectController);
+route.delete("/remove-collaborator", removeCollaborater);
 
 export default route;

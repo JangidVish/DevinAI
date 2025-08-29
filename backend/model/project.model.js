@@ -14,6 +14,7 @@ const projectSchema = new mongoose.Schema({
       ref: "user",
     },
   ],
+  
 });
 
 const projectModel = mongoose.model("project", projectSchema);
