@@ -13,6 +13,8 @@ import CodeEditor from '../components/CodeEditor';
 import AddUserPopUp from '../components/AddUserPopUp';
 import SyntaxHighlightedCode from '../components/SyntaxHighlightedCode';
 
+import Markdown from 'markdown-to-jsx';
+
 const useScrollToBottom = (ref, dependency) => {
   useEffect(() => {
     if (ref.current) {
@@ -190,8 +192,6 @@ const writeAiMessage = (message) => {
     return <div>Error rendering AI message</div>;
   }
 };
-
-
   
 
   const handleDelete = async () => {
