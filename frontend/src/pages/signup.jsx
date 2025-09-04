@@ -43,49 +43,62 @@ const Signup = () => {
         // Any side effects or cleanup can be handled here
     }, []);
   return (
-    <div className="flex items-center justify-center h-screen w-screen p-4 flex-row-reverse">
-      <Toaster />
-        <div className="left w-1/2 p-4 flex items-center justify-center">
-        <img src={SignupImage} alt="Signup Illustration" className='w-3/4' />
-        </div>
-      <div className="right w-1/2 flex flex-col items-center justify-center p-6 ">
-          <h1 className="text-3xl font-bold underline text-center mt-10">
-            Signup
-          </h1>
-          <p className="text-center mt-4">Please enter your credentials to Signup.</p>
-            <form className="flex flex-col items-center mt-6 w-full">
-                 <input
-                type="username"
-                placeholder="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="mb-4 p-2 border border-gray-300 rounded md:w-1/2 w-full"
-                />
-                <input
-                type="email"
-                placeholder="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="mb-4 p-2 border border-gray-300 rounded md:w-1/2 w-full"
-                />
-                <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mb-4 p-2 border border-gray-300 rounded md:w-1/2 w-full"
-                />
-                <button
-                type="submit"
-                className="bg-blue-500 text-white px-4 py-2 rounded md:w-1/2 w-full hover:bg-blue-600"
-                onClick={handleSubmit}
-                >
-                Signup
-                </button>
-            </form>
-            <p className="text-center mt-4">
-              Already have an account? <a href="/login" className="text-blue-500">Login</a>
-            </p>
+    <div className="flex items-center justify-center min-w-screen min-h-screen bg-gradient-to-r from-purple-900 via-black to-blue-900">
+      <Toaster position="top-center" reverseOrder={false} />
+      <div className="bg-black text-white rounded-2xl shadow-2xl p-10 w-[700px] border border-gray-700">
+        {/* Title */}
+        <h1 className="text-center text-2xl font-bold mb-8 tracking-wider">
+          CREATE YOUR ACCOUNT 🚀
+        </h1>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="flex flex-col space-y-6">
+          {/* Username */}
+          <div className="flex items-center space-x-2 bg-gray-900 px-4 py-3 rounded-md shadow-inner focus-within:ring-2 focus-within:ring-purple-500">
+            <span role="img" aria-label="user">👤</span>
+            <input
+              type="text"
+              placeholder="Username"
+              className="bg-transparent flex-1 outline-none text-gray-200 placeholder-gray-500"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+          </div>
+
+          {/* Email */}
+          <div className="flex items-center space-x-2 bg-gray-900 px-4 py-3 rounded-md shadow-inner focus-within:ring-2 focus-within:ring-purple-500">
+            <span role="img" aria-label="mail">📧</span>
+            <input
+              type="email"
+              placeholder="Email"
+              className="bg-transparent flex-1 outline-none text-gray-200 placeholder-gray-500"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+
+          {/* Password */}
+          <div className="flex items-center space-x-2 bg-gray-900 px-4 py-3 rounded-md shadow-inner focus-within:ring-2 focus-within:ring-purple-500">
+            <span role="img" aria-label="lock">🔒</span>
+            <input
+              type="password"
+              placeholder="Password"
+              className="bg-transparent flex-1 outline-none text-gray-200 placeholder-gray-500"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+
+          {/* Button */}
+          <button
+            type="submit"
+            className="mt-4 bg-white text-black font-bold text-lg py-2 rounded-md shadow-lg hover:scale-105 hover:shadow-2xl transition transform"
+          >
+            SIGN UP
+          </button>
+        </form>
+           <p className='mt-4 text-center'>Already have an account? <a href="/login" className="text-purple-400">Login</a></p>
+
       </div>
     </div>
   )

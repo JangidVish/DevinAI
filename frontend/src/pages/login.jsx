@@ -18,6 +18,11 @@ const Login = () => {
 
         e.preventDefault();
         // Handle login logic here
+        console.log(email, password);
+        if(!email || !password) {
+            toast.error("Please fill all the fields");
+            return;
+        }
         try {
             const response = await api.post("/user/login", {
                 email: email,
@@ -44,43 +49,51 @@ const Login = () => {
         console.log("Login form submitted");
     }   
   return (
-    <div className="flex items-center justify-center h-screen w-screen p-4 bg-zinc-800">
-      <Toaster />
-        <div className="left w-1/2 p-4 flex items-center justify-center">
-        <img src={LoginImage} alt="Login Illustration" className='w-3/4' />
-        </div>
-      <div className="right w-1/2 flex flex-col items-center justify-center p-6 ">
-          <h1 className="text-3xl font-bold underline text-center mt-10">
-            Login
-          </h1>
-          <p className="text-center mt-4">Please enter your credentials to login.</p>
-            <form className="flex flex-col items-center mt-6 w-full">
-                <input
-                type="email"
-                placeholder="email"
-                className="mb-4 p-2 border border-gray-300 rounded w-64"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                />
-                <input
-                type="password"
-                placeholder="Password"
-                className="mb-4 p-2 border border-gray-300 rounded w-64"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                />
-                <button
-                type="submit"
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-64"
-                onClick={handleSubmit}
-                >
-                Login
-                </button>
-            </form>
-            <p className="text-center mt-4">
-              Don't have an account? <a href="/signup" className="text-blue-500">Sign up</a>
-            </p>
+        <div className="flex items-center justify-center min-w-screen min-h-screen bg-gradient-to-r from-purple-900 via-black to-blue-900">
+      <Toaster position="top-center" reverseOrder={false} />
+      <div className="bg-black text-white rounded-2xl shadow-2xl p-10 w-[700px] border border-gray-700">
+        <h1 className="text-center text-2xl font-bold mb-8 tracking-wider">
+          LOGIN TO CONTINUE YOUR JOURNEY!
+        </h1>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="flex flex-col space-y-6">
+          {/* Email */}
+          <div className="flex items-center space-x-2 bg-gray-900 px-4 py-3 rounded-md shadow-inner focus-within:ring-2 focus-within:ring-purple-500">
+            <span role="img" aria-label="mail">📧</span>
+            <input
+              type="email"
+              placeholder="Email"
+              className="bg-transparent flex-1 outline-none text-gray-200 placeholder-gray-500"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+
+          {/* Password */}
+          <div className="flex items-center space-x-2 bg-gray-900 px-4 py-3 rounded-md shadow-inner focus-within:ring-2 focus-within:ring-purple-500">
+            <span role="img" aria-label="lock">🔒</span>
+            <input
+              type="password"
+              placeholder="Password"
+              className="bg-transparent flex-1 outline-none text-gray-200 placeholder-gray-500"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          <a href="/forgot-password" className=' text-purple-400'>Forgot your password? </a>
+
+          {/* Button */}
+          <button
+            type="submit"
+            className=" bg-white text-black font-bold text-lg py-2 rounded-md shadow-lg hover:scale-105 hover:shadow-2xl transition transform"
+          >
+            LOGIN
+          </button>
+        </form>
+           <p className='mt-4 text-center'>Don't have an account? <a href="/signup" className="text-purple-400">Register</a></p>
       </div>
+   
     </div>
   )
 }

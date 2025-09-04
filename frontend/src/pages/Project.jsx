@@ -13,7 +13,8 @@ import CodeEditor from '../components/CodeEditor';
 import AddUserPopUp from '../components/AddUserPopUp';
 import SyntaxHighlightedCode from '../components/SyntaxHighlightedCode';
 
-import Markdown from 'markdown-to-jsx';
+import Markdown from 'markdown-to-jsx'
+
 
 const useScrollToBottom = (ref, dependency) => {
   useEffect(() => {
@@ -41,6 +42,7 @@ const Project = () => {
   const [webContainer, setWebContainer] = useState(null);
   const [logs, setLogs] = useState([]);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [saveFileTree, setSaveFileTree] = useState({});
   const messageBox = useRef(null);
 
   useEffect(() => { if (!project) navigate('/'); }, [project, navigate]);
@@ -93,6 +95,7 @@ const Project = () => {
       if (!Object.keys(tree).length) return;
       try {
         await container.mount(tree);
+        setSaveFileTree(tree);
         setLogs(prev => [...prev, 'Mounted file tree']);
       } catch (err) {
         setLogs(prev => [...prev, `Mount error: ${err.message}`]);
@@ -171,11 +174,10 @@ const writeAiMessage = (message) => {
     const parsed = JSON.parse(message);
     return (
       <Markdown
+        children={parsed.text}
         options={{
           overrides: {
-            code: {
-              component: SyntaxHighlightedCode,
-            },
+            code: SyntaxHighlightedCode,
             pre: {
               component: (props) => (
                 <pre {...props} className="hljs rounded-lg p-2 bg-slate-900 overflow-x-auto" />
@@ -268,6 +270,7 @@ const writeAiMessage = (message) => {
           webContainer={webContainer}
           setLogs={setLogs}
           logs={logs}
+          saveFileTree={saveFileTree}
         />
       </section>
     </main>

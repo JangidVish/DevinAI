@@ -1,20 +1,18 @@
 import React, { useRef, useEffect } from "react";
-import hljs from "highlight.js";
+
 import "highlight.js/styles/github-dark.css";
 
 const SyntaxHighlightedCode = ({ className = '', children, ...props }) => {
-  const ref = useRef(null);
+      const ref = useRef(null)
 
-  useEffect(() => {
-    if (ref.current) {
-      if (className && className.startsWith("language-")) {
-        hljs.highlightElement(ref.current);
-      } else {
-        const result = hljs.highlightAuto(children?.toString() ?? "");
-        ref.current.innerHTML = result.value;
-      }
-    }
-  }, [children, className]);
+    useEffect(() => {
+        if (ref.current && props.className?.includes('lang-') && window.hljs) {
+            window.hljs.highlightElement(ref.current)
+
+            // hljs won't reprocess the element unless this attribute is removed
+            ref.current.removeAttribute('data-highlighted')
+        }
+    }, [ props.className, props.children ])
 
   return (
     <code ref={ref} className={className} {...props}>

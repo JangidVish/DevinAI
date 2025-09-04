@@ -115,7 +115,6 @@ io.on("connection", (socket) => {
     if (messageIncludesAi) {
       const prompt = message.replace("@ai", " ");
       const result = await getResultForSocket(prompt);
-      console.log("message at socket emit:", result);
 
       io.to(socket.roomId).emit("project-message", {
         message: result,

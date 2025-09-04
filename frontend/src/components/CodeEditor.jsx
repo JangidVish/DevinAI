@@ -1,5 +1,5 @@
 import React from "react";
-
+import hljs from "highlight.js";
 const CodeEditor = ({
   currentFile,
   fileTree,
@@ -10,6 +10,7 @@ const CodeEditor = ({
   webContainer,
   setLogs,
   logs,
+  saveFileTree
 }) => (
   currentFile && (
     <div className="code-editor flex-grow bg-zinc-700 flex flex-col">
@@ -84,6 +85,7 @@ const CodeEditor = ({
                   Test Server
                 </button>
         </div>
+
         {openFiles.map((file) => (
           <div
             key={file}
@@ -102,20 +104,44 @@ const CodeEditor = ({
           </div>
         ))}
       </div>
-      <div className="bottom bg-zinc-800 flex-grow w-full h-full">
+
+      {/* --- Bottom Code Editor --- */}
+      <div className="bottom flex flex-grow max-w-full shrink overflow-auto bg-zinc-800">
         {fileTree[currentFile] && (
-          <textarea
-            value={fileTree[currentFile]?.file?.contents || ''}
-            className="w-full h-full p-4 bg-base-300 text-white font-mono"
-            onChange={(e) => {
-              setFileTree((prev) => ({
-                ...prev,
-                [currentFile]: { file: { contents: e.target.value } },
-              }));
-            }}
-          />
+          <div className="code-editor-area h-full overflow-auto flex-grow bg-slate-50">
+            <pre className="hljs h-full">
+              <code
+                className="hljs h-full outline-none"
+                contentEditable
+                suppressContentEditableWarning
+                onBlur={(e) => {
+                  const updatedContent = e.target.innerText;
+                  const ft = {
+                    ...fileTree,
+                    [currentFile]: {
+                      file: {
+                        contents: updatedContent,
+                      },
+                    },
+                  };
+                  setFileTree(ft);
+                  if (saveFileTree) saveFileTree(ft); // call if provided
+                }}
+                dangerouslySetInnerHTML={{
+                  __html: hljs.highlight("javascript", fileTree[currentFile].file.contents).value,
+                }}
+                style={{
+                  whiteSpace: "pre-wrap",
+                  paddingBottom: "25rem",
+                  counterSet: "line-numbering",
+                }}
+              />
+            </pre>
+          </div>
         )}
       </div>
+
+      {/* --- Logs --- */}
       <div className="logs p-2 bg-slate-900 text-white max-h-40 overflow-y-auto">
         {logs.map((log, index) => (
           <p key={index}>{log}</p>

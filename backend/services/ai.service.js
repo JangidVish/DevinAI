@@ -84,7 +84,7 @@ export const generateResult = async (prompt) => {
   try {
     // console.log("AI recieved prompt: ", prompt);
     const result = await model.generateContent(prompt);
-    console.log(result.response.text());
+
     return result.response.text();
   } catch (error) {
     console.error("Error generating content:", error);
