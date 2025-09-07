@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const APIKEY = process.env.API_KEY;
-const genAI = new GoogleGenerativeAI("AIzaSyAGAFaMIKdNv55p54jpvqLwwzZO_gzt1wU"); // Use env for safety
+const genAI = new GoogleGenerativeAI("AIzaSyAMhPkErmCnmmaInvgnmJKMp_jeQpbTHSY"); // Use env for safety
 
 // Initialize the model
 const model = genAI.getGenerativeModel({
