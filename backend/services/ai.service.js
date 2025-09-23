@@ -1,18 +1,21 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const APIKEY = process.env.API_KEY;
-const genAI = new GoogleGenerativeAI("AIzaSyAMhPkErmCnmmaInvgnmJKMp_jeQpbTHSY"); // Use env for safety
+const genAI = new GoogleGenerativeAI(APIKEY || "AIzaSyBpcjLuGjdAhWq0rLqvaitpSZrncdpPPwY");
 
 // Initialize the model
 const model = genAI.getGenerativeModel({
-  model: "gemini-1.5-flash", // or gemini-1.5-pro / gemini-1.0-pro
+  model: "gemini-1.5-flash",
   generationConfig: {
     responseMimeType: "application/json",
     temperature: 0.4,
+    maxOutputTokens: 8192, // Increased token limit to prevent truncation
   },
   systemInstruction: `You are an expert in MERN stack and web development with over 10 years of experience. You write clean, modular, scalable, and maintainable code following industry best practices. You break code into logical files and folders, use meaningful comments, and ensure that previous functionality is preserved while adding new features. You always handle errors, edge cases, and exceptions properly.
 
-When the user gives you a request (like “Create an Express application”), respond in **strict JSON format only** as shown below.
+When the user gives you a request (like "Create an Express application"), respond in **strict JSON format only** as shown below.
+
+🔧 CRITICAL: Keep responses under 6000 characters to avoid truncation. Create simple, functional code.
 
 🔧 NEW: Make sure the JSON you return is valid and does not contain any trailing commas, comments, logs, or explanation text outside the JSON structure.
 
@@ -28,16 +31,16 @@ When the user gives you a request (like “Create an Express application”), re
 user: Create an express application  
 
 response: {
-  "text": "This is your fileTree structure of the Express server.",
+  "text": "Created a basic Express server with essential routes and middleware.",
   "fileTree": {
     "app.js": {
       "file": {
-        "contents": "const express = require('express');\\n\\nconst app = express();\\n\\n// Middleware to parse JSON\\napp.use(express.json());\\n\\n// Root route\\napp.get('/', (req, res) => {\\n  res.send('Hello World!');\\n});\\n\\n// Global error handler\\napp.use((err, req, res, next) => {\\n  console.error(err.stack);\\n  res.status(500).json({ error: 'Something went wrong!' });\\n});\\n\\n// Start server\\napp.listen(3000, () => {\\n  console.log('Server is running on port 3000');\\n});"
+        "contents": "const express = require('express');\\n\\nconst app = express();\\n\\n// Middleware\\napp.use(express.json());\\n\\n// Routes\\napp.get('/', (req, res) => {\\n  res.send('Hello World!');\\n});\\n\\napp.post('/data', (req, res) => {\\n  res.json({ message: 'Data received', data: req.body });\\n});\\n\\n// Error handler\\napp.use((err, req, res, next) => {\\n  res.status(500).json({ error: err.message });\\n});\\n\\napp.listen(3000, () => console.log('Server running on port 3000'));"
       }
     },
     "package.json": {
       "file": {
-        "contents": "{\\n  \\\"name\\\": \\\"temp-server\\\",\\n  \\\"version\\\": \\\"1.0.0\\\",\\n  \\\"main\\\": \\\"app.js\\\",\\n  \\\"scripts\\\": {\\n    \\\"start\\\": \\\"node app.js\\\"\\n  },\\n  \\\"keywords\\\": [],\\n  \\\"author\\\": \\\"\\\",\\n  \\\"license\\\": \\\"ISC\\\",\\n  \\\"description\\\": \\\"\\\",\\n  \\\"dependencies\\\": {\\n    \\\"express\\\": \\\"^4.21.2\\\"\\n  }\\n}"
+        "contents": "{\\n  \\\"name\\\": \\\"express-app\\\",\\n  \\\"version\\\": \\\"1.0.0\\\",\\n  \\\"main\\\": \\\"app.js\\\",\\n  \\\"scripts\\\": {\\n    \\\"start\\\": \\\"node app.js\\\"\\n  },\\n  \\\"dependencies\\\": {\\n    \\\"express\\\": \\\"^4.21.2\\\"\\n  }\\n}"
       }
     }
   },
@@ -46,16 +49,9 @@ response: {
     "commands": ["install"]
   },
   "startCommand": {
-    "mainItem": "node",
-    "commands": ["app.js"]
+    "mainItem": "npm",
+    "commands": ["start"]
   }
-}
-</example>
-
-<example>
-user: Hello  
-response: {
-  "text": "Hello, how can I help you today?"
 }
 </example>
 
@@ -64,9 +60,8 @@ response: {
 🔧 NEW: Important Constraints:
 
 - Return only valid JSON. Do **not** include logs, Markdown, comments, or explanations **outside** the JSON block.
-- Avoid non-standard characters such as emoji, smart quotes, or invisible whitespace.
+- Keep all code concise and functional. Avoid verbose comments.
 - All newline characters and double quotes inside string values must be properly escaped.
-- Do not include empty keys or arrays unless necessary.
 - Always include text, fileTree, and appropriate buildCommand and startCommand sections if it's a project.
 
 ---
@@ -74,20 +69,26 @@ response: {
 🔧 NEW: Validation Reminder:
 
 Your response will be passed to JSON.parse() directly — so make sure it is 100% parseable without preprocessing.
-
-
 `,
 });
 
 // Function to generate response
 export const generateResult = async (prompt) => {
   try {
-    // console.log("AI recieved prompt: ", prompt);
+    console.log("AI received prompt:", prompt);
     const result = await model.generateContent(prompt);
+    const rawResponse = result.response.text();
 
-    return result.response.text();
+    console.log("Raw AI response length:", rawResponse.length);
+    console.log("Response ends with:", rawResponse.slice(-10));
+
+    return rawResponse;
   } catch (error) {
     console.error("Error generating content:", error);
-    return "An error occurred while generating the result.";
+    return JSON.stringify({
+      text: "An error occurred while generating the result.",
+      error: true,
+      errorMessage: error.message
+    });
   }
 };

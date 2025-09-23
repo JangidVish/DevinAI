@@ -2,11 +2,13 @@ import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
 import morgan from "morgan";
-import connectDB from "./db/db.js"; // Import the database connection function
+import connectDB from "./db/db.js";
 import cookieParser from "cookie-parser";
 import userRoute from "./routes/user.route.js";
 import projectRoute from "./routes/project.route.js";
 import aiRoute from "./routes/ai.routes.js";
+import fileVersionRoute from "./routes/fileVersion.route.js";
+import projectVersionRoute from "./routes/projectVersion.route.js";
 
 import { Server } from "socket.io";
 import cors from "cors";
@@ -23,29 +25,44 @@ import {
 } from "./controllers/ai.controller.js";
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-app.use(cookieParser());
+const PORT = process.env.PORT || 3001;
 
+// ✅ SIMPLE CORS CONFIGURATION
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    process.env.CLIENT_URL || "http://localhost:5173"
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Requested-With'],
+  optionsSuccessStatus: 200
+}));
+
+// ✅ DO NOT ADD app.options('*', cors()) - This was causing the error!
+
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
-    credentials: true, // Allow cookies to be sent
-  })
-);
+app.use(morgan("dev"));
+
+// ✅ Routes registration
 app.use("/user", userRoute);
-app.use("/project", authorisedUser, projectRoute);
 app.use("/ai", aiRoute);
-
-app.use(morgan("dev")); // Logging middleware for development
-
-// const redisClient = createRedisClient();
+app.use("/fileversion", authorisedUser, fileVersionRoute);
+app.use("/project", authorisedUser, projectRoute);
+app.use("/", projectVersionRoute);
 
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*",
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:3000",
+      process.env.CLIENT_URL || "http://localhost:5173"
+    ],
+    credentials: true
   },
 });
 
@@ -57,10 +74,6 @@ io.use(async (socket, next) => {
         ? socket.handshake.headers.authorization.split(" ")[1]
         : null);
     const projectId = socket.handshake.query?.projectId;
-
-    // // Debug logs
-    // console.log("Socket handshake token:", token);
-    // console.log("Socket handshake projectId:", projectId);
 
     if (!mongoose.Types.ObjectId.isValid(projectId)) {
       console.log("Invalid projectId received:", projectId);
@@ -100,9 +113,6 @@ io.use(async (socket, next) => {
 });
 
 io.on("connection", (socket) => {
-  // socket.roomId = socket.project._id.toString();
-
-  // console.log("a user connected");
   socket.roomId = socket.project._id.toString();
   socket.join(socket.roomId);
 
@@ -112,25 +122,51 @@ io.on("connection", (socket) => {
 
     const messageIncludesAi = message.includes("@ai");
 
+    let savedMessage = null;
+    if (!messageIncludesAi) {
+      savedMessage = await Message.create({
+        projectId: socket.project._id,
+        sender,
+        message,
+      });
+    }
+
     if (messageIncludesAi) {
       const prompt = message.replace("@ai", " ");
-      const result = await getResultForSocket(prompt);
 
-      io.to(socket.roomId).emit("project-message", {
-        message: result,
+      const aiRequestMessage = await Message.create({
+        projectId: socket.project._id,
+        sender,
+        message,
+      });
+
+      // Create AI response message first to get its ID
+      const aiResponseMessage = await Message.create({
+        projectId: socket.project._id,
         sender: {
           _id: "ai",
           name: "AI",
         },
+        message: "Processing...", // Temporary message
       });
-    }
 
-    // Save to MongoDB
-    if (!messageIncludesAi) {
-      await Message.create({
-        projectId: socket.project._id,
-        sender,
-        message,
+      // Now call AI with the response message ID
+      const result = await getResultForSocket(
+        prompt,
+        socket.project._id.toString(),
+        aiResponseMessage._id
+      );
+
+      // Update the AI response message with the actual result
+      await Message.findByIdAndUpdate(aiResponseMessage._id, {
+        message: result,
+      });
+
+      io.to(socket.roomId).emit("project-message", {
+        ...aiResponseMessage.toObject(),
+        message: result,
+        messageId: aiResponseMessage._id,
+        _id: aiResponseMessage._id,
       });
     }
 
