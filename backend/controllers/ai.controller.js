@@ -1,6 +1,7 @@
 // controllers/ai.controller.js
 import { generateResult } from "../services/ai.service.js";
 import FileVersion from "../model/fileVersion.model.js";
+import Message from "../model/message.model.js";
 import mongoose from "mongoose";
 // Enhanced JSON cleaning and parsing function
 const cleanAndParseJSON = (rawResponse) => {
@@ -90,35 +91,14 @@ const cleanAndParseJSON = (rawResponse) => {
         return JSON.parse(extracted);
       } catch (thirdError) {
         console.error("Third parse attempt failed:", thirdError.message);
-        // Final attempt: Create a minimal working response
-        try {
-          const textMatch = rawResponse.match(/"text":\s*"([^"]*)"/) || ["", "Express app created"];
-          return {
-            text: textMatch[1] || "Express app created with parsing issues",
-            fileTree: {
-              "app.js": {
-                "file": {
-                  "contents": "const express = require('express');\nconst app = express();\napp.use(express.json());\napp.get('/', (req, res) => res.send('Hello World!'));\napp.listen(3000, () => console.log('Server running on port 3000'));"
-                }
-              },
-              "package.json": {
-                "file": {
-                  "contents": "{\n  \"name\": \"express-app\",\n  \"version\": \"1.0.0\",\n  \"main\": \"app.js\",\n  \"scripts\": {\n    \"start\": \"node app.js\"\n  },\n  \"dependencies\": {\n    \"express\": \"^4.21.2\"\n  }\n}"
-                }
-              }
-            },
-            buildCommand: {
-              mainItem: "npm",
-              commands: ["install"]
-            },
-            startCommand: {
-              mainItem: "npm",
-              commands: ["start"]
-            }
-          };
-        } catch (finalError) {
-          console.error("Final fallback failed:", finalError.message);
-        }
+        // Don't provide misleading fallback content - return error instead
+        console.error("All JSON parsing attempts failed. Response may be truncated or malformed.");
+        return {
+          text: "Sorry, I encountered an issue processing your request. The AI response was malformed or truncated. Please try again with a simpler request.",
+          error: true,
+          originalResponse: rawResponse.substring(0, 1000),
+          parseError: thirdError.message
+        };
       }
 
       // Ultimate fallback: return a structured error response
@@ -148,65 +128,122 @@ const saveGeneratedCodeAsVersions = async (result, projectId, messageId = null) 
     // Check if parsing resulted in an error response
     if (parsedResult.error) {
       console.error('Parsed result contains error:', parsedResult);
-      return JSON.stringify(parsedResult);
+      return {
+        processedResult: JSON.stringify(parsedResult),
+        filesCreated: 0
+      };
     }
     // Validate projectId
     if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) {
       console.error('Invalid projectId:', projectId);
-      return JSON.stringify(parsedResult);
+      return {
+        processedResult: JSON.stringify(parsedResult),
+        filesCreated: 0
+      };
     }
+
+    let filesCreated = 0;
+
     // Check if the response contains a fileTree
     if (parsedResult && parsedResult.fileTree) {
       const fileTree = parsedResult.fileTree;
       console.log("Processing fileTree with", Object.keys(fileTree).length, "files");
-      // Process each file in the fileTree
-      for (const [filePath, fileData] of Object.entries(fileTree)) {
+
+      // Process each file in the fileTree - handle both creation and deletion
+      const fileSavePromises = Object.entries(fileTree).map(async ([filePath, fileData]) => {
         try {
-          if (fileData && fileData.file && fileData.file.contents) {
+          if (fileData && fileData.file) {
             // Extract file information
             const pathParts = filePath.split('/');
             const fileName = pathParts[pathParts.length - 1];
-            // Validate file content
-            if (typeof fileData.file.contents !== 'string') {
-              console.warn(`Invalid content type for ${filePath}:`, typeof
-                fileData.file.contents);
-              continue;
+
+            // Handle file deletion
+            if (fileData.file.deleted === true) {
+              console.log(`🗑️ Processing deletion for ${filePath}`);
+
+              // Create a deletion record (mark file as deleted)
+              const deletionRecord = await FileVersion.create({
+                projectId: new mongoose.Types.ObjectId(projectId),
+                fileName,
+                filePath,
+                content: '', // Empty content for deleted files
+                isDeleted: true, // Mark as deleted
+                messageId: messageId ? new mongoose.Types.ObjectId(messageId) : null,
+                metadata: {
+                  generatedBy: 'AI',
+                  operation: 'delete',
+                  timestamp: new Date()
+                }
+              });
+
+              console.log(`✅ Created deletion record for ${fileName} with ID:`, deletionRecord._id);
+              return deletionRecord;
             }
-            // Save as a new file version
-            const fileVersion = await FileVersion.create({
-              projectId: new mongoose.Types.ObjectId(projectId),
-              fileName,
-              filePath,
-              content: fileData.file.contents,
-              messageId: messageId ? new mongoose.Types.ObjectId(messageId) : null,
-              metadata: {
-                generatedBy: 'AI',
-                language: fileName.includes('.') ? fileName.split('.').pop() : 'unknown',
-                timestamp: new Date()
+            // Handle file creation/modification
+            else if (fileData.file.contents) {
+              // Validate file content
+              if (typeof fileData.file.contents !== 'string') {
+                console.warn(`Invalid content type for ${filePath}:`, typeof fileData.file.contents);
+                return null;
               }
-            });
-            console.log(`Saved file version for ${fileName} with ID:`, fileVersion._id);
+
+              // Save as a new file version
+              const fileVersion = await FileVersion.create({
+                projectId: new mongoose.Types.ObjectId(projectId),
+                fileName,
+                filePath,
+                content: fileData.file.contents,
+                isDeleted: false, // Explicitly mark as not deleted
+                messageId: messageId ? new mongoose.Types.ObjectId(messageId) : null,
+                metadata: {
+                  generatedBy: 'AI',
+                  operation: 'create/modify',
+                  language: fileName.includes('.') ? fileName.split('.').pop() : 'unknown',
+                  timestamp: new Date()
+                }
+              });
+
+              console.log(`✅ Saved file version for ${fileName} with ID:`, fileVersion._id);
+              return fileVersion;
+            } else {
+              console.warn(`Invalid file structure for ${filePath}:`, fileData);
+              return null;
+            }
           } else {
-            console.warn(`Invalid file structure for ${filePath}:`, fileData);
+            console.warn(`Invalid file data for ${filePath}:`, fileData);
+            return null;
           }
         } catch (fileError) {
-          console.error(`Error saving file ${filePath}:`, fileError);
-          // Continue with other files even if one fails
+          console.error(`Error processing file ${filePath}:`, fileError);
+          return null;
         }
-      }
-      console.log("Completed saving file versions");
+      });
+
+      // Wait for all files to be saved
+      const savedFiles = await Promise.all(fileSavePromises);
+      filesCreated = savedFiles.filter(file => file !== null).length;
+
+      console.log(`Completed saving ${filesCreated} file versions`);
     } else {
       console.log("📝 No fileTree found in parsed result - this is a normal chat message, no files to save");
     }
-    return JSON.stringify(parsedResult);
+
+    // Return both the parsed result and the count of files created
+    return {
+      processedResult: JSON.stringify(parsedResult),
+      filesCreated
+    };
   } catch (error) {
     console.error('Error in saveGeneratedCodeAsVersions:', error);
     // Return a valid JSON string even if saving fails
-    return JSON.stringify({
-      text: "Code generation completed but failed to save file versions.",
-      error: true,
-      errorMessage: error.message
-    });
+    return {
+      processedResult: JSON.stringify({
+        text: "Code generation completed but failed to save file versions.",
+        error: true,
+        errorMessage: error.message
+      }),
+      filesCreated: 0
+    };
   }
 };
 export const getresultaiController = async (req, res) => {
@@ -223,8 +260,8 @@ export const getresultaiController = async (req, res) => {
     const result = await generateResult(prompt);
     console.log("Raw result from AI service:", result.substring(0, 200) + "...");
     // Save any generated code as file versions
-    const processedResult = await saveGeneratedCodeAsVersions(result, projectId);
-    res.json({ result: processedResult });
+    const saveResult = await saveGeneratedCodeAsVersions(result, projectId);
+    res.json({ result: saveResult.processedResult });
   } catch (error) {
     console.error("Error in AI controller:", error);
     res.status(500).json({
@@ -240,41 +277,90 @@ const createProjectVersion = async (projectId, messageId, description = '') => {
   try {
     console.log('🔄 Creating project version for project:', projectId);
 
+    // Ensure projectId is properly converted to ObjectId
+    const projectObjectId = new mongoose.Types.ObjectId(projectId);
+
     // Get current latest version number
     const latestVersion = await ProjectVersion
-      .findOne({ projectId })
+      .findOne({ projectId: projectObjectId })
       .sort({ version: -1 })
       .limit(1);
 
     const newVersionNumber = latestVersion ? latestVersion.version + 1 : 1;
     console.log('📊 New version number:', newVersionNumber);
 
-    // Get all current files for this project
-    const allFiles = await FileVersion.find({ projectId });
-    console.log('📁 Found files:', allFiles.length);
-    // Build file tree from all files (latest version of each)
+    // Get all files for this project created by this message and all previous files
+    // First, get files created by this specific message
+    const filesFromThisMessage = await FileVersion.find({
+      projectId: projectObjectId,
+      messageId
+    });
+
+    console.log('📄 Files created by this message:', filesFromThisMessage.length);
+
+    // Get all files for this project up to now (excluding files from this message to avoid duplicates)
+    const existingFiles = await FileVersion.find({
+      projectId: projectObjectId,
+      messageId: { $ne: messageId }
+    }).sort({ timestamp: 1 });
+
+    console.log('� Existing files before this message:', existingFiles.length);
+
+    // Combine all files
+    const allFiles = [...existingFiles, ...filesFromThisMessage];
+    console.log('📁 Total files to process:', allFiles.length);
+
+    // Build file tree from all files
+    const allFilePaths = await FileVersion.distinct('filePath', { projectId: projectObjectId });
+    const currentMessage = await Message.findById(messageId);
+    const messageTimestamp = currentMessage ? currentMessage.timestamp : new Date();
+
     const fileTree = {};
-    const fileGroups = {};
-    // Group files by path
-    allFiles.forEach(file => {
-      if (!fileGroups[file.filePath]) {
-        fileGroups[file.filePath] = [];
+
+    // For each file path, determine what version to include
+    for (const filePath of allFilePaths) {
+      const fileFromCurrentMessage = filesFromThisMessage.find(f => f.filePath === filePath);
+
+      if (fileFromCurrentMessage) {
+        // Skip files that are marked as deleted in current message
+        if (fileFromCurrentMessage.isDeleted) {
+          console.log(`🗑️ Excluding deleted file from project version: ${filePath}`);
+          continue;
+        }
+
+        // Use version from current message
+        fileTree[filePath] = {
+          file: { contents: fileFromCurrentMessage.content },
+          version: fileFromCurrentMessage.version,
+          versionId: fileFromCurrentMessage._id,
+          lastModified: fileFromCurrentMessage.timestamp,
+          fromMessage: fileFromCurrentMessage.messageId
+        };
+      } else {
+        // Find latest version before this message
+        const latestVersionBeforeMessage = await FileVersion.findOne({
+          projectId: projectObjectId,
+          filePath,
+          timestamp: { $lt: messageTimestamp }
+        }).sort({ timestamp: -1 });
+
+        if (latestVersionBeforeMessage) {
+          // Skip files that are marked as deleted in their latest version
+          if (latestVersionBeforeMessage.isDeleted) {
+            console.log(`🗑️ Excluding file marked as deleted in previous version: ${filePath}`);
+            continue;
+          }
+
+          fileTree[filePath] = {
+            file: { contents: latestVersionBeforeMessage.content },
+            version: latestVersionBeforeMessage.version,
+            versionId: latestVersionBeforeMessage._id,
+            lastModified: latestVersionBeforeMessage.timestamp,
+            fromMessage: latestVersionBeforeMessage.messageId
+          };
+        }
       }
-      fileGroups[file.filePath].push(file);
-    });
-    // Get latest version of each file
-    Object.keys(fileGroups).forEach(filePath => {
-      const files = fileGroups[filePath].sort((a, b) => b.version - a.version);
-      const latestFile = files[0];
-      fileTree[filePath] = {
-        file: {
-          contents: latestFile.content
-        },
-        version: latestFile.version,
-        versionId: latestFile._id,
-        lastModified: latestFile.timestamp
-      };
-    });
+    }
 
     console.log('🌳 Built file tree with keys:', Object.keys(fileTree));
 
@@ -284,9 +370,38 @@ const createProjectVersion = async (projectId, messageId, description = '') => {
       return null;
     }
 
+    // Check if the fileTree has actually changed compared to the previous version
+    if (latestVersion) {
+      const previousFileTree = latestVersion.fileTree || {};
+      const currentFileTreeKeys = Object.keys(fileTree).sort();
+      const previousFileTreeKeys = Object.keys(previousFileTree).sort();
+
+      // Check if file lists are different (files added/removed)
+      const fileListChanged = JSON.stringify(currentFileTreeKeys) !== JSON.stringify(previousFileTreeKeys);
+
+      // Check if any file contents have changed
+      let fileContentsChanged = false;
+      for (const filePath of currentFileTreeKeys) {
+        const currentFile = fileTree[filePath];
+        const previousFile = previousFileTree[filePath];
+
+        if (!previousFile || currentFile.file.contents !== previousFile.file.contents) {
+          fileContentsChanged = true;
+          break;
+        }
+      }
+
+      if (!fileListChanged && !fileContentsChanged) {
+        console.log('📝 No changes detected in fileTree - skipping project version creation');
+        return null;
+      }
+
+      console.log(`🔄 FileTree changes detected - Files added/removed: ${fileListChanged}, Contents changed: ${fileContentsChanged}`);
+    }
+
     // Create project version
     const projectVersion = await ProjectVersion.create({
-      projectId,
+      projectId: projectObjectId,
       version: newVersionNumber,
       description: description || `Project state after AI command`,
       fileTree,
@@ -294,7 +409,7 @@ const createProjectVersion = async (projectId, messageId, description = '') => {
       messageId
     });
 
-    console.log(`✅ Created project version ${projectVersion.version}`);
+    console.log(`✅ Created project version ${projectVersion.version} with ${Object.keys(fileTree).length} files`);
     return projectVersion;
 
   } catch (error) {
@@ -306,6 +421,9 @@ export const getResultForSocket = async (prompt, projectId, messageId = null) =>
   try {
     console.log("AI controller hit (SOCKET)");
     console.log("Prompt received:", prompt);
+    console.log("Project ID:", projectId);
+    console.log("Message ID:", messageId);
+
     if (!prompt || typeof prompt !== 'string') {
       return JSON.stringify({
         text: "Invalid prompt provided",
@@ -316,19 +434,39 @@ export const getResultForSocket = async (prompt, projectId, messageId = null) =>
     console.log("Raw result from AI service:", result.substring(0, 200) + "...");
     // Save any generated code as file versions if projectId is provided
     if (projectId && mongoose.Types.ObjectId.isValid(projectId)) {
-      const processedResult = await saveGeneratedCodeAsVersions(result, projectId,
-        messageId);
-      // Create project version after saving files (only if files were actually created)
-      if (messageId) {
+      console.log("📁 Valid project ID, saving file versions...");
+      const saveResult = await saveGeneratedCodeAsVersions(result, projectId, messageId);
+
+      // Only create project version if:
+      // 1. We have a messageId (valid AI interaction)
+      // 2. Files were actually created/modified/deleted (saveResult.filesCreated > 0)
+      // 3. The AI response doesn't contain errors
+      const parsedResult = JSON.parse(saveResult.processedResult);
+      const hasErrors = parsedResult.error === true;
+
+      if (messageId && saveResult.filesCreated > 0 && !hasErrors) {
+        console.log(`🔄 Creating project version for message: ${messageId} (${saveResult.filesCreated} files processed)`);
+
+        // Add a small delay to ensure all file saves are fully committed
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // Always attempt to create project version - let createProjectVersion decide if fileTree changed
         const projectVersion = await createProjectVersion(projectId, messageId, `AI: ${prompt.substring(0, 50)}...`);
         if (projectVersion) {
           console.log('✅ Project version created:', projectVersion.version);
         } else {
-          console.log('📝 No project version created - normal chat message');
+          console.log('📝 No fileTree changes detected - no project version created');
         }
+      } else if (messageId && saveResult.filesCreated === 0) {
+        console.log('📝 No files processed - normal chat message, no project version needed');
+      } else if (messageId && hasErrors) {
+        console.log('❌ AI response contains errors - no project version created');
+      } else {
+        console.log("⚠️ No messageId provided, skipping project version creation");
       }
-      return processedResult;
+      return saveResult.processedResult;
     } else {
+      console.log("⚠️ Invalid or missing project ID, just parsing result");
       // Just clean and parse the JSON without saving
       const cleanedResult = cleanAndParseJSON(result);
       return JSON.stringify(cleanedResult);

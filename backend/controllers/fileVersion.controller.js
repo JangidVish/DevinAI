@@ -1,12 +1,16 @@
+import mongoose from 'mongoose';
 import FileVersion from '../model/fileVersion.model.js';
 // Create a new file version
 export const createFileVersion = async (req, res) => {
   try {
     const { projectId, fileName, filePath, content, messageId, metadata } = req.body;
 
+    // Convert projectId to ObjectId for strict project isolation
+    const projectObjectId = new mongoose.Types.ObjectId(projectId);
+
     // Find the latest version number for this file
     const latestVersion = await FileVersion.findOne(
-      { projectId, filePath },
+      { projectId: projectObjectId, filePath },
       { version: 1 },
       { sort: { version: -1 } }
     );
@@ -14,7 +18,7 @@ export const createFileVersion = async (req, res) => {
     const version = latestVersion ? latestVersion.version + 1 : 1;
 
     const newFileVersion = new FileVersion({
-      projectId,
+      projectId: projectObjectId,
       fileName,
       filePath,
       content,
@@ -44,8 +48,11 @@ export const getFileVersions = async (req, res) => {
     const { projectId, filePath } = req.params;
     const decodedFilePath = decodeURIComponent(filePath);
 
+    // Convert projectId to ObjectId for strict project isolation
+    const projectObjectId = new mongoose.Types.ObjectId(projectId);
+
     const fileVersions = await FileVersion.find(
-      { projectId, filePath: decodedFilePath },
+      { projectId: projectObjectId, filePath: decodedFilePath },
       {},
       { sort: { version: -1 } }
     );
@@ -97,8 +104,11 @@ export const getLatestFileVersion = async (req, res) => {
     const { projectId, filePath } = req.params;
     const decodedFilePath = decodeURIComponent(filePath);
 
+    // Convert projectId to ObjectId for strict project isolation
+    const projectObjectId = new mongoose.Types.ObjectId(projectId);
+
     const latestVersion = await FileVersion.findOne(
-      { projectId, filePath: decodedFilePath },
+      { projectId: projectObjectId, filePath: decodedFilePath, isDeleted: { $ne: true } },
       {},
       { sort: { version: -1 } }
     );
@@ -106,7 +116,7 @@ export const getLatestFileVersion = async (req, res) => {
     if (!latestVersion) {
       return res.status(404).json({
         success: false,
-        message: 'No versions found for this file'
+        message: 'No active versions found for this file (file may have been deleted)'
       });
     }
 

@@ -1,6 +1,8 @@
 import Message from "../model/message.model.js";
 import projectModel from "../model/project.model.js";
 import User from "../model/user.model.js";
+import FileVersion from "../model/fileVersion.model.js";
+import ProjectVersion from "../model/projectVersion.model.js";
 import {
   addUserToProject,
   createProject,
@@ -162,13 +164,35 @@ export const deleteProjectController = async (req, res) => {
         .status(403)
         .json({ error: "Access denied: not a project member" });
     }
+    // Delete all related data
+    console.log(`🗑️ Deleting project ${projectId} and all related data...`);
+
     // Delete related messages
-    await Message.deleteMany({ projectId: projectId });
-    // Delete the project
+    const messagesResult = await Message.deleteMany({ projectId: projectId });
+    console.log(`🗑️ Deleted ${messagesResult.deletedCount} messages`);
+
+    // Delete related file versions
+    const fileVersionsResult = await FileVersion.deleteMany({ projectId: projectId });
+    console.log(`🗑️ Deleted ${fileVersionsResult.deletedCount} file versions`);
+
+    // Delete related project versions
+    const projectVersionsResult = await ProjectVersion.deleteMany({ projectId: projectId });
+    console.log(`🗑️ Deleted ${projectVersionsResult.deletedCount} project versions`);
+
+    // Delete the project itself
     await projectModel.findByIdAndDelete(projectId);
+    console.log(`✅ Project ${projectId} and all related data deleted successfully`);
+
     return res
       .status(200)
-      .json({ message: "Project and related messages deleted successfully" });
+      .json({
+        message: "Project and all related data deleted successfully",
+        deletedCounts: {
+          messages: messagesResult.deletedCount,
+          fileVersions: fileVersionsResult.deletedCount,
+          projectVersions: projectVersionsResult.deletedCount
+        }
+      });
   } catch (error) {
     console.error("Error deleting project:", error);
     return res.status(500).json({ error: "Internal server error" });

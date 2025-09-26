@@ -36,7 +36,7 @@ const ChatPanel = ({
   };
 
   return (
-    <div className="conversation-area flex-grow flex flex-col p-2 max-w-100">
+    <div className="conversation-area flex-grow flex flex-col p-2 min-w-0 overflow-hidden">
       {/* Chat Messages */}
       {isLoadingMessages ? (
         <div className="flex justify-center items-center h-full text-white">
@@ -49,7 +49,7 @@ const ChatPanel = ({
       ) : (
         <div
           ref={messageBox}
-          className="message-box flex-grow flex flex-col gap-2 overflow-y-auto px-2"
+          className="message-box flex-grow flex flex-col gap-2 overflow-y-auto px-1 lg:px-2 min-w-0"
           style={{ maxHeight: "calc(100vh - 150px)" }}
         >
           {messages.map((msg, index) => {
@@ -96,7 +96,7 @@ const ChatPanel = ({
                     )}
                   </div>
                   <div
-                    className={`chat-bubble max-w-[90%] ${
+                    className={`chat-bubble max-w-[90%] break-words overflow-hidden ${
                       isSenderAI
                         ? "bg-slate-900 text-white"
                         : isCurrentUser
@@ -122,13 +122,13 @@ const ChatPanel = ({
         </div>
       )}
 
-      <div className="inputField flex justify-between p-2 border border-indigo-400 rounded-lg">
+      <div className="inputField flex items-center gap-2 p-2 border border-indigo-400 rounded-lg flex-shrink-0">
         <input
           type="text"
           value={message || ""}
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Enter message"
-          className="focus:outline-none flex-grow bg-transparent text-white"
+          className="focus:outline-none flex-grow bg-transparent text-white text-sm lg:text-base min-w-0"
           onKeyPress={(e) => {
             if (e.key === "Enter") {
               send();
@@ -136,10 +136,10 @@ const ChatPanel = ({
           }}
         />
         <button
-          className="p-2 ml-2 bg-indigo-600 hover:bg-indigo-700 rounded-full transition-colors"
+          className="p-1.5 lg:p-2 bg-indigo-600 hover:bg-indigo-700 rounded-full transition-colors flex-shrink-0"
           onClick={send}
         >
-          <i className="ri-send-plane-2-fill" />
+          <i className="ri-send-plane-2-fill text-sm lg:text-base" />
         </button>
       </div>
     </div>

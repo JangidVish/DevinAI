@@ -310,14 +310,22 @@ const Project = () => {
         );
         if (response.data.success) {
           const fullProjectVersion = response.data.data;
+          console.log("📁 Full project version data:", fullProjectVersion);
+          console.log("🌳 FileTree from version:", fullProjectVersion.fileTree);
+
           setCurrentProjectVersion(fullProjectVersion);
           // Force state update with new object reference
           const newFileTree = { ...fullProjectVersion.fileTree };
+          console.log("🔄 Setting new fileTree:", newFileTree);
           setFileTree(newFileTree);
+
           // Update current file if it exists in this version
           const fileKeys = Object.keys(fullProjectVersion.fileTree || {});
+          console.log("🔑 Available file keys in this version:", fileKeys);
+
           if (fileKeys.length > 0) {
             if (!fileKeys.includes(currentFile)) {
+              console.log("📄 Switching to first file:", fileKeys[0]);
               setCurrentFile(fileKeys[0]);
               setOpenFiles([fileKeys[0]]);
             }
@@ -351,32 +359,28 @@ const Project = () => {
   };
   if (!project) return null;
   return (
-    <main className="h-screen w-screen flex">
-      <section
-        className="left h-full min-w-92 bg-zinc-950/90 flex flex-col justify
-between"
-      >
-        <header className="flex justify-between items-center p-4 w-full bg-indigo-400">
-          <h1 className="text-lg uppercase font-bold text-white font-serif">
+    <main className="h-screen w-screen flex flex-col lg:flex-row overflow-hidden">
+      <section className="left h-full w-full lg:w-[25%] bg-zinc-950/90 flex flex-col border-r border-slate-700 flex-shrink-0">
+        <header className="flex justify-between items-center p-3 lg:p-4 w-full bg-indigo-400 flex-shrink-0">
+          <h1 className="text-sm lg:text-lg uppercase font-bold text-white font-serif truncate">
             {typeof project?.name === "object"
               ? project.name.name
               : project.name}
           </h1>
-          <div className="flex gap-2 items-center">
+          <div className="flex gap-1 lg:gap-2 items-center">
             {/* Debug button */}
             <button
               onClick={forceRefresh}
-              className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 text-xs rounded 
-transition-colors"
+              className="bg-red-600 hover:bg-red-700 text-white px-1 lg:px-2 py-1 text-xs rounded transition-colors"
               title="Force refresh files (debug)"
             >
-              🔄Refresh
+              🔄
             </button>
             <button
-              className="p-2 rounded-full bg-slate-200"
+              className="p-1.5 lg:p-2 rounded-full bg-slate-200"
               onClick={() => setSidePanel(true)}
             >
-              <i className="ri-group-fill text-black" />
+              <i className="ri-group-fill text-black text-sm lg:text-base" />
             </button>
           </div>
         </header>
@@ -417,7 +421,7 @@ transition-colors"
           />
         )}
       </section>
-      <section className="right bg-slate-950 flex-grow h-full flex">
+      <section className="right bg-slate-950 flex-grow h-full flex flex-col lg:flex-row overflow-hidden">
         <FileExplorer
           fileTree={fileTree}
           setCurrentFile={setCurrentFile}
@@ -425,31 +429,10 @@ transition-colors"
           currentFile={currentFile}
           isLoadingVersions={isLoadingVersions}
           projectVersion={currentProjectVersion}
+          project={project}
+          onLoadProjectVersion={handleLoadProjectVersion}
         />
-        <div className="flex flex-col flex-grow">
-          {currentFile && fileTree[currentFile] && (
-            <div className="bg-slate-800 p-2 flex items-center justify-between">
-              <div className="text-white font-medium">{currentFile}</div>
-              <div className="flex gap-2">
-                {currentProjectVersion && (
-                  <span className="text-white text-xs px-2 py-1 rounded-md bg-purple-600">
-                    Project v{currentProjectVersion.version}
-                  </span>
-                )}
-                {fileTree[currentFile].version !== undefined && (
-                  <span
-                    className={`text-white text-xs px-2 py-1 rounded-md ${
-                      fileTree[currentFile].isLatestVersion
-                        ? "bg-green-600"
-                        : "bg-indigo-600"
-                    }`}
-                  >
-                    File v{fileTree[currentFile].version}
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
+        <div className="flex flex-col flex-grow min-w-0 overflow-hidden">
           <CodeEditor
             currentFile={currentFile}
             fileTree={fileTree}

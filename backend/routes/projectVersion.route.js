@@ -1,4 +1,5 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import ProjectVersion from '../model/projectVersion.model.js';
 import FileVersion from '../model/fileVersion.model.js';
 
@@ -10,8 +11,11 @@ router.get('/project/:projectId/versions', async (req, res) => {
     console.log('📊 GET /project/:projectId/versions called for:', req.params.projectId);
     const { projectId } = req.params;
 
+    // Ensure proper ObjectId conversion for strict project isolation
+    const projectObjectId = new mongoose.Types.ObjectId(projectId);
+
     const versions = await ProjectVersion
-      .find({ projectId })
+      .find({ projectId: projectObjectId })
       .sort({ version: -1 })
       .select('-fileTree');
 
@@ -36,9 +40,13 @@ router.get('/project/:projectId/version/:versionId', async (req, res) => {
     console.log('🌳 GET /project/:projectId/version/:versionId called');
     const { projectId, versionId } = req.params;
 
+    // Ensure proper ObjectId conversion for strict project isolation
+    const projectObjectId = new mongoose.Types.ObjectId(projectId);
+    const versionObjectId = new mongoose.Types.ObjectId(versionId);
+
     const projectVersion = await ProjectVersion.findOne({
-      _id: versionId,
-      projectId
+      _id: versionObjectId,
+      projectId: projectObjectId
     });
 
     if (!projectVersion) {

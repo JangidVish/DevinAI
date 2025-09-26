@@ -1,4 +1,6 @@
 import express from 'express';
+import mongoose from 'mongoose';
+import FileVersion from '../model/fileVersion.model.js';
 import {
   createFileVersion,
   getFileVersions,
@@ -33,14 +35,14 @@ router.get('/file/:filePath/latest', async (req, res) => {
     const decodedFilePath = decodeURIComponent(filePath);
 
     const latestVersion = await FileVersion
-      .findOne({ filePath: decodedFilePath })
+      .findOne({ filePath: decodedFilePath, isDeleted: { $ne: true } })
       .sort({ version: -1, timestamp: -1 })
       .limit(1);
 
     if (!latestVersion) {
       return res.status(404).json({
         success: false,
-        message: 'No versions found for this file'
+        message: 'No active versions found for this file (file may have been deleted)'
       });
     }
 
@@ -61,15 +63,18 @@ router.get('/project/:projectId/latest', async (req, res) => {
   try {
     const { projectId } = req.params;
 
+    // Convert projectId to ObjectId for strict project isolation
+    const projectObjectId = new mongoose.Types.ObjectId(projectId);
+
     // Get all unique file paths for this project
-    const uniqueFiles = await FileVersion.distinct('filePath', { projectId });
+    const uniqueFiles = await FileVersion.distinct('filePath', { projectId: projectObjectId });
 
     const latestVersions = [];
 
-    // Get latest version for each file
+    // Get latest version for each file (exclude deleted files)
     for (const filePath of uniqueFiles) {
       const latestVersion = await FileVersion
-        .findOne({ projectId, filePath })
+        .findOne({ projectId: projectObjectId, filePath, isDeleted: { $ne: true } })
         .sort({ version: -1, timestamp: -1 })
         .limit(1);
 
@@ -141,8 +146,11 @@ router.get('/project/:projectId/all', async (req, res) => {
   try {
     const { projectId } = req.params;
 
+    // Convert projectId to ObjectId for strict project isolation
+    const projectObjectId = new mongoose.Types.ObjectId(projectId);
+
     const allVersions = await FileVersion
-      .find({ projectId })
+      .find({ projectId: projectObjectId })
       .sort({ filePath: 1, version: -1, timestamp: -1 });
 
     res.json({
