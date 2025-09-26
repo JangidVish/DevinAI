@@ -7,6 +7,7 @@ import {
   getMessagesController,
   getProjectsController,
   removeCollaborater,
+  // cleanupOrphanedDataController, // Remove this line for now
 } from "../controllers/project.controller.js";
 import { body } from "express-validator";
 
@@ -33,7 +34,12 @@ route.post(
 
 route.get("/get-project/:projectId", getProjectsController);
 route.get("/:projectId/messages", getMessagesController);
+
+// ✅ Updated delete route with cascade delete
 route.delete("/delete-project/:projectId", deleteProjectController);
 route.delete("/remove-collaborator", removeCollaborater);
+
+// ✅ Remove cleanup route for now - we'll add it later
+// route.delete("/cleanup-orphaned-data", cleanupOrphanedDataController);
 
 export default route;
