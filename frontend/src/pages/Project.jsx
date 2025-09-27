@@ -61,7 +61,7 @@ const Project = () => {
   const [isLoadingVersions, setIsLoadingVersions] = useState(false);
   const messageBox = useRef(null);
   useEffect(() => {
-    if (!project) navigate("/");
+    if (!project) navigate("/home");
   }, [project, navigate]);
   const fetchProject = useCallback(async () => {
     try {
@@ -293,7 +293,7 @@ const Project = () => {
         `/project/delete-project/${project._id}`
       );
       toast.success("Project deleted successfully");
-      navigate("/");
+      navigate("/home");
     } catch (err) {
       setLogs((prev) => [...prev, `Delete error: ${err.message}`]);
     }
@@ -361,21 +361,23 @@ const Project = () => {
   return (
     <main className="h-screen w-screen flex flex-col lg:flex-row overflow-hidden">
       <section className="left h-full w-full lg:w-[25%] bg-zinc-950/90 flex flex-col border-r border-slate-700 flex-shrink-0">
-        <header className="flex justify-between items-center p-3 lg:p-4 w-full bg-indigo-400 flex-shrink-0">
-          <h1 className="text-sm lg:text-lg uppercase font-bold text-white font-serif truncate">
-            {typeof project?.name === "object"
-              ? project.name.name
-              : project.name}
-          </h1>
-          <div className="flex gap-1 lg:gap-2 items-center">
-            {/* Debug button */}
+        <header className="flex justify-between items-center p-3 lg:p-4 w-full bg-gradient-to-r from-slate-800 to-indigo-900 flex-shrink-0">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            {/* Back arrow to Home */}
             <button
-              onClick={forceRefresh}
-              className="bg-red-600 hover:bg-red-700 text-white px-1 lg:px-2 py-1 text-xs rounded transition-colors"
-              title="Force refresh files (debug)"
+              onClick={() => navigate("/home")}
+              className="text-white hover:text-gray-300 transition-colors flex-shrink-0"
+              title="Back to Home"
             >
-              🔄
+              <i className="ri-arrow-left-line text-lg lg:text-xl"></i>
             </button>
+            <h1 className="text-sm lg:text-lg uppercase font-bold text-white font-serif min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
+              {typeof project?.name === "object"
+                ? project.name.name
+                : project.name}
+            </h1>
+          </div>
+          <div className="flex gap-1 lg:gap-2 items-center flex-shrink-0">
             <button
               className="p-1.5 lg:p-2 rounded-full bg-slate-200"
               onClick={() => setSidePanel(true)}
@@ -409,6 +411,7 @@ const Project = () => {
           setAddCollaborator={setAddCollaborator}
           project={project}
           handleDelete={handleDelete}
+          onCollaboratorRemoved={fetchProject}
         />
         {addCollaborator && (
           <AddUserPopUp
@@ -448,6 +451,7 @@ const Project = () => {
             currentProjectVersion={currentProjectVersion}
             onLoadProjectVersion={handleLoadProjectVersion}
             isLoadingVersions={isLoadingVersions}
+            forceRefresh={forceRefresh}
           />
         </div>
       </section>

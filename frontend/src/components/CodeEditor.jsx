@@ -18,6 +18,7 @@ const CodeEditor = ({
   project,
   allFileVersions = {}, // NEW: Receive all file versions
   onLoadProjectVersion, // NEW: Handler for loading entire project version
+  forceRefresh, // NEW: Force refresh function
   isLoadingVersions,
 }) => {
   const [currentVersion, setCurrentVersion] = useState(null);
@@ -86,15 +87,22 @@ const CodeEditor = ({
 
   if (!currentFile) {
     return (
-      <div className="code-editor flex-grow bg-zinc-700 flex items-center justify-center">
-        <div className="text-white text-center">
-          <div className="mb-4">
-            <i className="ri-code-s-slash-line text-6xl text-gray-500"></i>
+      <div className="code-editor flex-grow bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-20 h-20 bg-slate-800/50 rounded-3xl flex items-center justify-center mb-6 mx-auto">
+            <i className="ri-code-s-slash-line text-3xl text-slate-500"></i>
           </div>
-          <p className="text-lg font-semibold">No file selected</p>
-          <p className="text-sm text-gray-400">
-            Select a file from the explorer or generate files with @ai commands
+          <p className="text-xl font-semibold text-white mb-3">
+            Welcome to DevMetaAI
           </p>
+          <p className="text-sm text-slate-400 max-w-md mx-auto leading-relaxed">
+            Select a file from the explorer to start editing, or use AI commands
+            to generate new files
+          </p>
+          <div className="flex items-center justify-center gap-2 mt-6 text-xs text-slate-500">
+            <i className="ri-lightbulb-line"></i>
+            <span>Try typing @ai to get started</span>
+          </div>
         </div>
       </div>
     );
@@ -218,6 +226,18 @@ const CodeEditor = ({
           >
             Test Server
           </button>
+          <button
+            className="bg-slate-600 hover:bg-slate-700 text-white text-xs px-2 py-1 rounded transition-colors"
+            onClick={() => {
+              // Call the forceRefresh function passed from parent
+              if (forceRefresh) {
+                forceRefresh();
+              }
+            }}
+            title="Refresh project files"
+          >
+            <i className="ri-refresh-line"></i>
+          </button>
         </div>
 
         <div
@@ -241,7 +261,7 @@ const CodeEditor = ({
                 {file.split("/").pop()}
               </h1>
               <button
-                className="ml-2 text-gray-400 hover:text-white focus:outline-0 focus:border-0 flex-shrink-0"
+                className="ml-2 w-5 h-5 rounded-full flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-600/50 focus:outline-0 focus:border-0 flex-shrink-0 transition-all duration-200"
                 onClick={(e) => {
                   e.stopPropagation();
                   setOpenFiles &&
@@ -255,23 +275,20 @@ const CodeEditor = ({
                   }
                 }}
               >
-                <i className="ri-close-fill text-sm" />
+                <i className="ri-close-line text-xs" />
               </button>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Editor Area - 80% height */}
-      <div
-        className="editor-section flex-grow bg-zinc-800"
-        style={{ height: "80%" }}
-      >
+      {/* Editor Area - Fixed height with flex-grow */}
+      <div className="editor-section flex-1 bg-gradient-to-br from-slate-800 to-slate-900 min-h-0 overflow-hidden">
         {fileTree[currentFile] && fileTree[currentFile].file ? (
-          <div className="code-editor-area h-full overflow-auto bg-slate-50">
-            <pre className="hljs h-full">
+          <div className="code-editor-area h-full overflow-auto bg-slate-900 custom-scrollbar">
+            <pre className="hljs h-full p-4">
               <code
-                className="hljs h-full outline-none block"
+                className="hljs h-full outline-none block text-sm leading-relaxed"
                 contentEditable
                 suppressContentEditableWarning
                 onBlur={handleContentEdit}
@@ -284,44 +301,67 @@ const CodeEditor = ({
                   overflowWrap: "break-word",
                   paddingBottom: "2rem",
                   counterSet: "line-numbering",
+                  backgroundColor: "transparent",
+                  color: "#e2e8f0",
                 }}
               />
             </pre>
           </div>
         ) : (
-          <div className="flex items-center justify-center h-full text-gray-400">
+          <div className="flex items-center justify-center h-full text-slate-400">
             <div className="text-center">
-              <i className="ri-file-code-line text-4xl mb-2"></i>
-              <p>Select a file to view its content</p>
+              <div className="w-16 h-16 bg-slate-800/50 rounded-2xl flex items-center justify-center mb-4 mx-auto">
+                <i className="ri-file-code-line text-2xl text-slate-500"></i>
+              </div>
+              <p className="text-lg font-medium mb-2">No file selected</p>
+              <p className="text-sm text-slate-500 max-w-64 mx-auto">
+                Choose a file from the explorer to start editing
+              </p>
             </div>
           </div>
         )}
       </div>
 
-      {/* Terminal Area - 20% height */}
-      <div
-        className="terminal-section bg-slate-900 border-t border-slate-700"
-        style={{ height: "20%" }}
-      >
+      {/* Terminal Area - Fixed 25% height */}
+      <div className="terminal-section h-1/4 bg-slate-950 border-t border-slate-700/50 flex-shrink-0">
         <div className="h-full flex flex-col">
-          <div className="flex items-center justify-between p-2 border-b border-slate-700">
-            <h3 className="text-white text-sm font-medium">Terminal</h3>
+          <div className="flex items-center justify-between p-3 border-b border-slate-700/50 bg-slate-900/50">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 bg-green-600 rounded-md flex items-center justify-center">
+                <i className="ri-terminal-line text-white text-xs"></i>
+              </div>
+              <h3 className="text-white text-sm font-medium">Terminal</h3>
+              <div className="flex items-center gap-1 ml-2">
+                <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-xs text-slate-400">Ready</span>
+              </div>
+            </div>
             <button
-              className="text-gray-400 hover:text-white text-xs px-2 py-1 rounded hover:bg-slate-700 transition-colors"
+              className="text-slate-400 hover:text-white text-xs px-3 py-1.5 rounded-lg hover:bg-slate-700/50 transition-all duration-200 border border-slate-600/30 hover:border-slate-500/50"
               onClick={() => setLogs([])}
             >
+              <i className="ri-delete-bin-line mr-1"></i>
               Clear
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto p-2 text-white text-sm font-mono">
+          <div className="flex-1 overflow-y-auto p-3 text-slate-100 text-sm font-mono custom-scrollbar bg-slate-950/50">
             {logs && logs.length > 0 ? (
               logs.map((log, index) => (
-                <p key={index} className="mb-1">
-                  {log}
-                </p>
+                <div
+                  key={index}
+                  className="flex items-start gap-2 mb-2 hover:bg-slate-800/30 px-2 py-1 rounded transition-colors"
+                >
+                  <span className="text-slate-500 flex-shrink-0 text-xs mt-0.5">
+                    $
+                  </span>
+                  <p className="flex-1 text-slate-200">{log}</p>
+                </div>
               ))
             ) : (
-              <p className="text-gray-400">No terminal output yet...</p>
+              <div className="flex items-center gap-3 text-slate-500 p-4">
+                <i className="ri-information-line text-lg"></i>
+                <p>Terminal ready for output...</p>
+              </div>
             )}
           </div>
         </div>
