@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import api from '../config/axios';
-import toast from 'react-hot-toast';
+import React, { useEffect, useState } from "react";
+import api from "../config/axios";
+import toast from "react-hot-toast";
+import "../styles/components/AddUserPopUp.css";
 
-
-const AddUserPopUp = ({ projectId, onClose, onSuccess}) => {
+const AddUserPopUp = ({ projectId, onClose, onSuccess }) => {
   const [allUser, setAllUser] = useState(null);
   const [loading, setLoading] = useState(true);
   // const [addUser, setAddUser]=useState([]);
@@ -22,7 +22,7 @@ const AddUserPopUp = ({ projectId, onClose, onSuccess}) => {
           return;
         }
         setAllUser(response.data);
-        // onSuccess(); 
+        // onSuccess();
         // console.log("Fetched users:", response.data);
       } catch (error) {
         toast.error("Error while fetching users:", error);
@@ -34,61 +34,72 @@ const AddUserPopUp = ({ projectId, onClose, onSuccess}) => {
     fetchAllUsers();
   }, [projectId]);
 
-      const addUserId = async (addUser)=>{
-      try {
-        const response = await api.post("/project/addUser", {
-          projectId,
-          users: addUser
-        }
-      )
+  const addUserId = async (addUser) => {
+    try {
+      const response = await api.post("/project/addUser", {
+        projectId,
+        users: addUser,
+      });
 
-      if(!response){
-        toast.error("Failed to add user: ")
+      if (!response) {
+        toast.error("Failed to add user: ");
       }
 
       toast.success("User Added Successfully");
-      onSuccess()
-      } catch (error) {
-        toast.error("Error while adding user: ",error)  
-      }
-
-    } 
+      onSuccess();
+    } catch (error) {
+      toast.error("Error while adding user: ", error);
+    }
+  };
 
   return (
-    <div className="fixed inset-0 bg-zinc-900 bg-opacity-60 flex items-center justify-center z-50">
-      <div className="flex flex-col justify-around bg-gray-900/50 p-6 rounded shadow-lg min-h-[40vh] max-h-[80vh] overflow-y-auto min-w-[400px]">
-        <h2 className="text-xl font-bold mb-4">All Users</h2>
+    <div className="add-user-popup__overlay">
+      <div className="add-user-popup__content">
+        <h2 className="add-user-popup__title">Add Collaborators</h2>
 
         {loading ? (
-          <p className="text-white">Loading...</p>
+          <div className="add-user-popup__loading">
+            <div className="add-user-popup__spinner"></div>
+          </div>
         ) : allUser && allUser.users?.length > 0 ? (
-          <ul>
-            {allUser.users.map((user) => (
-              <li
-                key={user._id}
-                className="py-1 text-lg text-white flex justify-around items-center"
-              >
-                <p className="min-w-3/4">{user.email}</p>
-                <div className="btn" onClick={()=>{
-                  addUserId([user._id])
-      
-                }}>
-                  <i className="ri-user-add-fill"></i>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <div className="add-user-popup__user-list">
+            <ul className="add-user-popup__users">
+              {allUser.users.map((user) => (
+                <li key={user._id} className="add-user-popup__user-item">
+                  <div className="add-user-popup__user-info">
+                    <div className="add-user-popup__user-avatar">
+                      <i className="ri-user-line"></i>
+                    </div>
+                    <span className="add-user-popup__user-email">
+                      {user.email}
+                    </span>
+                  </div>
+                  <button
+                    className="add-user-popup__add-btn"
+                    onClick={() => {
+                      addUserId([user._id]);
+                    }}
+                  >
+                    <i className="ri-user-add-fill"></i>
+                    Add
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
         ) : (
-          <p className="text-white">No users found.</p>
+          <div className="add-user-popup__empty-state">
+            <p className="add-user-popup__empty-text">
+              No users available to add.
+            </p>
+          </div>
         )}
 
-<button
-  className="mt-4 px-4 py-2 rounded bg-gray-600 text-white"
-  onClick={onClose}
->
-  Cancel
-</button>
-
+        <div className="add-user-popup__footer">
+          <button className="add-user-popup__cancel-btn" onClick={onClose}>
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
   );

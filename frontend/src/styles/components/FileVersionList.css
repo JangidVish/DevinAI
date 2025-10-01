@@ -1,0 +1,148 @@
+/* FileVersionList Component Styles */
+
+.file-version-list {
+  background-color: rgb(30, 41, 59);
+  border-radius: 0.375rem;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.file-version-list__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s ease;
+}
+
+.file-version-list__header:hover {
+  background-color: rgb(51, 65, 85);
+}
+
+.file-version-list__title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: white;
+  margin: 0;
+}
+
+.file-version-list__toggle {
+  color: white;
+  font-size: 0.75rem;
+}
+
+.file-version-list__content {
+  margin-top: 0.5rem;
+}
+
+.file-version-list__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.file-version-list__spinner {
+  animation: spin 1s linear infinite;
+  border-radius: 50%;
+  height: 1rem;
+  width: 1rem;
+  border: 2px solid transparent;
+  border-bottom-color: white;
+}
+
+.file-version-list__loading-text {
+  color: rgb(156, 163, 175);
+  font-size: 0.75rem;
+  margin-left: 0.5rem;
+  margin: 0;
+}
+
+.file-version-list__error {
+  color: rgb(248, 113, 113);
+  font-size: 0.75rem;
+  padding: 0.5rem;
+  background-color: rgba(153, 27, 27, 0.2);
+  border-radius: 0.25rem;
+  margin: 0;
+}
+
+.file-version-list__empty {
+  color: rgb(156, 163, 175);
+  font-size: 0.75rem;
+  padding: 0.5rem;
+  margin: 0;
+}
+
+.file-version-list__versions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-height: 10rem;
+  overflow-y: auto;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.file-version-list__version-item {
+  font-size: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.file-version-list__version-item:hover {
+  background-color: rgb(51, 65, 85);
+}
+
+.file-version-list__version-item--latest {
+  background-color: rgb(51, 65, 85);
+}
+
+.file-version-list__version-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.file-version-list__version-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.file-version-list__version-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  color: white;
+}
+
+.file-version-list__version-badge--latest {
+  background-color: rgb(22, 163, 74);
+}
+
+.file-version-list__version-badge--normal {
+  background-color: rgb(79, 70, 229);
+}
+
+.file-version-list__version-time {
+  color: rgb(156, 163, 175);
+}
+
+.file-version-list__version-tag {
+  font-size: 0.75rem;
+  background-color: rgb(71, 85, 105);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

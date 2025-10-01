@@ -78,6 +78,11 @@ export const addUserToProjectController = async (req, res) => {
       return res.status(400).json({ error: "Invalid user IDs provided" });
     }
     const loggedInUser = await User.findOne({ email: req.user.email });
+    if (!loggedInUser) {
+      return res.status(404).json({ error: "Logged in user not found" });
+    }
+    console.log(`Adding users to project - Project ID: ${projectId}, Logged in user: ${loggedInUser._id}, Users to add:`, users);
+
     const project = await addUserToProject({
       projectId: projectId,
       users: users,

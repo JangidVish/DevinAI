@@ -62,13 +62,14 @@ export const addUserToProject = async ({ projectId, users, userId }) => {
       throw new Error("Invalid user IDs provided");
     }
 
-    const projects = await projectModel.findOne({
-      _id: projectId,
-      users: userId,
-    });
+    // Check if the requesting user has permission to add users to this project
+    const hasPermission = project.users.some(user => user.toString() === userId.toString());
 
-    if (!projects) {
-      throw new Error("Project not found or user not part of the project");
+    if (!hasPermission) {
+      console.log(`Permission check failed - Project ID: ${projectId}, User ID: ${userId}`);
+      console.log(`Project users:`, project.users.map(u => u.toString()));
+      console.log(`Requesting user ID:`, userId.toString());
+      throw new Error("You don't have permission to add users to this project");
     }
 
     const updatedProject = await projectModel.findOneAndUpdate(

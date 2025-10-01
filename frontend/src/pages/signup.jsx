@@ -1,47 +1,46 @@
-import React from 'react'
-import SignupImage from '../assets/Login-amico.svg'; // Assuming you have an image in the assets folder
-import api from '../config/axios';
-import { useNavigate } from 'react-router-dom';
-import { UserContext } from '../context/user.context';
-import toast, { Toaster } from 'react-hot-toast';
+import React from "react";
+import SignupImage from "../assets/Login-amico.svg"; // Assuming you have an image in the assets folder
+import api from "../config/axios";
+import { useNavigate } from "react-router-dom";
+import { UserContext } from "../context/user.context";
+import toast, { Toaster } from "react-hot-toast";
 const Signup = () => {
-    const [email, setEmail] = React.useState("");
-    const [username, setUsername] = React.useState("");
+  const [email, setEmail] = React.useState("");
+  const [username, setUsername] = React.useState("");
 
-    const [password, setPassword] = React.useState("");
-    const navigate = useNavigate();
+  const [password, setPassword] = React.useState("");
+  const navigate = useNavigate();
 
-    const handleSubmit = async(e) => {
-        e.preventDefault();
-        localStorage.removeItem("token");
-        // Handle signup logic here
-        try {
-            const response = await api.post("/user/register", {
-                email: email,
-                password: password,
-                username: username
-            });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    localStorage.removeItem("token");
+    // Handle signup logic here
+    try {
+      const response = await api.post("/user/register", {
+        email: email,
+        password: password,
+        username: username,
+      });
 
-            if(!response || !response.data) {
-              toast.error("Invalid response from server")
-                throw new Error("Invalid response from server");
-            }
-            // Assuming the server returns a token or some user data
+      if (!response || !response.data) {
+        toast.error("Invalid response from server");
+        throw new Error("Invalid response from server");
+      }
+      // Assuming the server returns a token or some user data
 
-            if (response.status === 200) {
-                toast.success("Signup Successful")
-                localStorage.setItem("token", response.data.token); // Store token in localStorage
+      if (response.status === 200) {
+        toast.success("Signup Successful");
+        localStorage.setItem("token", response.data.token); // Store token in localStorage
 
-                navigate("/");
-            }
-        } catch (error) {
-            toast.error("Signup failed:", error);
-        }
-        
+        navigate("/home");
+      }
+    } catch (error) {
+      toast.error("Signup failed:", error);
     }
-    React.useEffect(() => {
-        // Any side effects or cleanup can be handled here
-    }, []);
+  };
+  React.useEffect(() => {
+    // Any side effects or cleanup can be handled here
+  }, []);
   return (
     <div className="flex items-center justify-center min-w-screen min-h-screen bg-gradient-to-r from-purple-900 via-black to-blue-900">
       <Toaster position="top-center" reverseOrder={false} />
@@ -55,7 +54,9 @@ const Signup = () => {
         <form onSubmit={handleSubmit} className="flex flex-col space-y-6">
           {/* Username */}
           <div className="flex items-center space-x-2 bg-gray-900 px-4 py-3 rounded-md shadow-inner focus-within:ring-2 focus-within:ring-purple-500">
-            <span role="img" aria-label="user">👤</span>
+            <span role="img" aria-label="user">
+              👤
+            </span>
             <input
               type="text"
               placeholder="Username"
@@ -67,7 +68,9 @@ const Signup = () => {
 
           {/* Email */}
           <div className="flex items-center space-x-2 bg-gray-900 px-4 py-3 rounded-md shadow-inner focus-within:ring-2 focus-within:ring-purple-500">
-            <span role="img" aria-label="mail">📧</span>
+            <span role="img" aria-label="mail">
+              📧
+            </span>
             <input
               type="email"
               placeholder="Email"
@@ -79,7 +82,9 @@ const Signup = () => {
 
           {/* Password */}
           <div className="flex items-center space-x-2 bg-gray-900 px-4 py-3 rounded-md shadow-inner focus-within:ring-2 focus-within:ring-purple-500">
-            <span role="img" aria-label="lock">🔒</span>
+            <span role="img" aria-label="lock">
+              🔒
+            </span>
             <input
               type="password"
               placeholder="Password"
@@ -97,11 +102,15 @@ const Signup = () => {
             SIGN UP
           </button>
         </form>
-           <p className='mt-4 text-center'>Already have an account? <a href="/login" className="text-purple-400">Login</a></p>
-
+        <p className="mt-4 text-center">
+          Already have an account?{" "}
+          <a href="/login" className="text-purple-400">
+            Login
+          </a>
+        </p>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Signup
+export default Signup;

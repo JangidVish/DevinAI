@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { formatDistanceToNow } from "date-fns";
 import api from "../config/axios";
+import "../styles/components/FileExplorer.css";
 
 const FileExplorer = ({
   fileTree,
@@ -11,28 +12,10 @@ const FileExplorer = ({
   projectVersion, // NEW: Current project version info
   project, // Project object to fetch versions
   onLoadProjectVersion, // Handler for loading project version
+  projectVersions = [], // NEW: Project versions passed from parent
 }) => {
   const [showProjectVersions, setShowProjectVersions] = useState(false);
-  const [projectVersions, setProjectVersions] = useState([]);
   const dropdownRef = useRef(null);
-
-  // Fetch project versions
-  useEffect(() => {
-    const fetchProjectVersions = async () => {
-      if (!project?._id) return;
-
-      try {
-        const response = await api.get(`/project/${project._id}/versions`);
-        if (response.data.success) {
-          setProjectVersions(response.data.data);
-        }
-      } catch (error) {
-        console.error("Error fetching project versions:", error);
-      }
-    };
-
-    fetchProjectVersions();
-  }, [project?._id]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -56,64 +39,66 @@ const FileExplorer = ({
   };
 
   return (
-    <div className="explorer h-full w-full lg:w-64 xl:w-72 lg:max-w-80 lg:min-w-52 bg-slate-900 flex-shrink-0 border-r border-slate-700 overflow-hidden">
-      <div className="file-tree flex flex-col h-full">
-        <div className="p-2 lg:p-3 border-b border-slate-700 flex-shrink-0">
-          <h3 className="text-white font-bold text-sm lg:text-base">Files</h3>
+    <div className="file-explorer">
+      <div className="file-explorer__container">
+        <div className="file-explorer__header">
+          <h3 className="file-explorer__title">Files</h3>
           {projectVersion && (
-            <div className="mt-1">
-              <span className="text-xs bg-purple-600 text-white px-2 py-1 rounded whitespace-nowrap">
+            <div className="file-explorer__version-info">
+              <span className="file-explorer__version-badge">
                 Project v{projectVersion.version}
               </span>
             </div>
           )}
 
           {/* Project Versions Dropdown */}
-          <div className="mt-2 relative" ref={dropdownRef}>
+          <div className="file-explorer__dropdown" ref={dropdownRef}>
             <button
-              className="w-full text-left bg-slate-800 hover:bg-slate-700 text-white text-xs px-2 py-1.5 rounded border border-slate-600 flex items-center justify-between transition-colors"
+              className={`file-explorer__dropdown-btn ${
+                showProjectVersions ? "file-explorer__dropdown-btn--open" : ""
+              }`}
               onClick={() => setShowProjectVersions(!showProjectVersions)}
             >
               <span>Project Versions ({projectVersions.length})</span>
-              <i
-                className={`ri-arrow-down-s-line transition-transform ${
-                  showProjectVersions ? "rotate-180" : ""
-                }`}
-              ></i>
+              <i className="ri-arrow-down-s-line"></i>
             </button>
 
             {showProjectVersions && (
-              <div className="absolute top-full left-0 right-0 z-10 mt-1 bg-slate-800 border border-slate-600 rounded shadow-lg max-h-48 overflow-y-auto">
+              <div className="file-explorer__dropdown-menu">
                 {projectVersions.length === 0 ? (
-                  <div className="p-2 text-gray-400 text-xs">
+                  <div className="file-explorer__dropdown-empty">
                     No project versions found
                   </div>
                 ) : (
                   projectVersions.map((version, index) => (
                     <button
                       key={version._id}
-                      className={`w-full text-left p-2 hover:bg-slate-700 transition-colors border-b border-slate-700 last:border-b-0 ${
-                        index === 0 ? "bg-slate-700" : ""
+                      className={`file-explorer__dropdown-item ${
+                        index === 0
+                          ? "file-explorer__dropdown-item--latest"
+                          : ""
                       }`}
                       onClick={() => handleVersionSelect(version)}
                     >
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-2">
+                      <div className="file-explorer__version-header">
+                        <div className="file-explorer__version-left">
                           <span
-                            className={`px-1.5 py-0.5 rounded text-xs text-white ${
-                              index === 0 ? "bg-green-600" : "bg-purple-600"
+                            className={`file-explorer__version-tag ${
+                              index === 0
+                                ? "file-explorer__version-tag--latest"
+                                : "file-explorer__version-tag--normal"
                             }`}
                           >
                             v{version.version}
                             {index === 0 && " (Latest)"}
                           </span>
                         </div>
-                        <span className="text-gray-400 text-xs">
+                        <span className="file-explorer__version-count">
                           {version.filesCount} files
                         </span>
                       </div>
                       {version.description && (
-                        <div className="mt-1 text-xs text-gray-500 truncate">
+                        <div className="file-explorer__version-desc">
                           {version.description}
                         </div>
                       )}
@@ -126,19 +111,21 @@ const FileExplorer = ({
         </div>
 
         {isLoadingVersions ? (
-          <div className="p-4 text-center">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-400 mx-auto mb-2"></div>
-            <p className="text-gray-400 text-sm">Loading project files...</p>
+          <div className="file-explorer__loading">
+            <div className="file-explorer__spinner"></div>
+            <p className="file-explorer__loading-text">
+              Loading project files...
+            </p>
           </div>
         ) : Object.keys(fileTree).length === 0 ? (
-          <div className="p-4 text-center">
-            <p className="text-gray-400 text-sm">No files available</p>
-            <p className="text-gray-500 text-xs mt-1">
+          <div className="file-explorer__empty">
+            <p className="file-explorer__empty-title">No files available</p>
+            <p className="file-explorer__empty-subtitle">
               Send an @ai command to generate files
             </p>
           </div>
         ) : (
-          <div className="flex-1 overflow-y-auto">
+          <div className="file-explorer__file-list">
             {Object.keys(fileTree).map((file, index) => {
               const fileData = fileTree[file];
               const isSelected = file === currentFile;
@@ -150,11 +137,11 @@ const FileExplorer = ({
               return (
                 <button
                   key={`file-${index}-${file}`}
-                  className={`tree-element p-2 lg:p-3 flex flex-col w-full transition-all duration-200 ${
+                  className={`file-explorer__file-item ${
                     isSelected
-                      ? "bg-indigo-700 border-l-4 border-indigo-400"
-                      : "bg-slate-700 hover:bg-slate-600"
-                  } border-0 rounded-r text-left`}
+                      ? "file-explorer__file-item--selected"
+                      : "file-explorer__file-item--normal"
+                  }`}
                   onClick={() => {
                     setCurrentFile(file);
                     setOpenFiles((prev) =>
@@ -162,23 +149,27 @@ const FileExplorer = ({
                     );
                   }}
                 >
-                  <div className="flex justify-between items-center w-full min-w-0">
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <div className="file-explorer__file-header">
+                    <div className="file-explorer__file-main">
                       <div
-                        className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                          isSelected ? "bg-indigo-300" : "bg-gray-500"
+                        className={`file-explorer__file-dot ${
+                          isSelected
+                            ? "file-explorer__file-dot--selected"
+                            : "file-explorer__file-dot--normal"
                         }`}
                       ></div>
-                      <p className="cursor-pointer font-semibold text-xs lg:text-sm truncate">
+                      <p className="file-explorer__file-name">
                         {file.split("/").pop()}
                       </p>
                     </div>
 
-                    <div className="flex gap-1 items-center flex-shrink-0 ml-2">
+                    <div className="file-explorer__file-status">
                       {hasVersion && (
                         <span
-                          className={`text-white text-xs px-1.5 py-0.5 rounded-full ${
-                            isLatest ? "bg-green-600" : "bg-indigo-600"
+                          className={`file-explorer__version-badge ${
+                            isLatest
+                              ? "file-explorer__version-badge--latest"
+                              : "file-explorer__version-badge--normal"
                           }`}
                         >
                           v{fileData.version}
@@ -186,25 +177,23 @@ const FileExplorer = ({
                       )}
                       {fromMessage && (
                         <div
-                          className="w-2 h-2 bg-blue-500 rounded-full"
+                          className="file-explorer__status-dot file-explorer__status-dot--ai"
                           title="From AI chat"
                         ></div>
                       )}
                       {isModified && (
                         <div
-                          className="w-2 h-2 bg-orange-500 rounded-full"
+                          className="file-explorer__status-dot file-explorer__status-dot--modified"
                           title="Modified"
                         ></div>
                       )}
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center mt-1 min-w-0">
-                    <p className="text-xs text-gray-400 truncate flex-1">
-                      {file}
-                    </p>
+                  <div className="file-explorer__file-meta">
+                    <p className="file-explorer__file-path">{file}</p>
                     {fileData.lastModified && (
-                      <p className="text-xs text-gray-500 flex-shrink-0 ml-2 hidden lg:block">
+                      <p className="file-explorer__file-time">
                         {formatDistanceToNow(new Date(fileData.lastModified), {
                           addSuffix: true,
                         })}
@@ -212,14 +201,14 @@ const FileExplorer = ({
                     )}
                   </div>
 
-                  <div className="flex gap-1 mt-1 flex-wrap">
+                  <div className="file-explorer__file-tags">
                     {fromMessage && (
-                      <span className="text-xs bg-blue-900 text-blue-200 px-1.5 py-0.5 rounded whitespace-nowrap">
+                      <span className="file-explorer__tag file-explorer__tag--ai">
                         From Chat
                       </span>
                     )}
                     {isModified && (
-                      <span className="text-xs bg-orange-900 text-orange-200 px-1.5 py-0.5 rounded whitespace-nowrap">
+                      <span className="file-explorer__tag file-explorer__tag--modified">
                         Modified
                       </span>
                     )}
