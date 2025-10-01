@@ -1,0 +1,213 @@
+/* SidePanel Component Styles - Updated for DevMate AI Theme */
+
+.side-panel {
+  width: 20rem; /* w-80 */
+  height: 100%;
+  position: absolute;
+  background: rgba(17, 24, 39, 0.95);
+  backdrop-filter: blur(20px);
+  border-left: 1px solid rgba(99, 102, 241, 0.2);
+  transition: all 0.3s ease;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -10px 0 25px rgba(0, 0, 0, 0.3);
+}
+
+.side-panel--open {
+  right: 0;
+}
+
+.side-panel--closed {
+  right: -320px;
+}
+
+.side-panel__header {
+  display: flex;
+  justify-content: space-between;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(147, 51, 234, 0.1));
+  border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+  color: white;
+  align-items: center;
+  backdrop-filter: blur(10px);
+}
+
+.side-panel__add-btn {
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: white;
+  background: linear-gradient(135deg, rgb(99, 102, 241), rgb(147, 51, 234));
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.side-panel__add-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+  background: linear-gradient(135deg, rgb(109, 112, 251), rgb(157, 61, 244));
+}
+
+.side-panel__close-btn {
+  background: rgba(75, 85, 99, 0.2);
+  border: 1px solid rgba(75, 85, 99, 0.3);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  color: white;
+  font-weight: bold;
+  padding: 0.5rem;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.side-panel__close-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.3);
+  transform: scale(1.05);
+}
+
+.side-panel__user-list {
+  margin-top: 1rem;
+  padding: 0 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.side-panel__user-tile {
+  width: 100%;
+  background: rgba(31, 41, 55, 0.6);
+  border: 1px solid rgba(75, 85, 99, 0.2);
+  border-radius: 0.75rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 1rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.side-panel__user-tile:hover {
+  background: rgba(55, 65, 81, 0.8);
+  border-color: rgba(99, 102, 241, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.side-panel__user-info {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.side-panel__avatar {
+  padding: 0;
+}
+
+.side-panel__avatar-img {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(99, 102, 241, 0.3);
+  transition: all 0.3s ease;
+}
+
+.side-panel__user-tile:hover .side-panel__avatar-img {
+  border-color: rgba(99, 102, 241, 0.6);
+  transform: scale(1.05);
+}
+
+.side-panel__avatar-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.side-panel__username {
+  font-weight: 600;
+  color: white;
+  font-size: 0.95rem;
+}
+
+.side-panel__remove-btn {
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 0.5rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.side-panel__remove-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  transform: scale(1.1);
+}
+
+.side-panel__remove-btn i {
+  color: rgb(248, 113, 113);
+  font-size: 1.1rem;
+  transition: color 0.3s ease;
+}
+
+.side-panel__remove-btn:hover i {
+  color: white;
+}
+
+.side-panel__delete-section {
+  width: 100%;
+  padding: 1.5rem;
+  margin-top: auto;
+}
+
+.side-panel__delete-btn {
+  width: 100%;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.9), rgba(185, 28, 28, 0.9));
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.side-panel__delete-btn:hover {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 1), rgba(185, 28, 28, 1));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+.side-panel__delete-btn i {
+  font-size: 1.2rem;
+}

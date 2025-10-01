@@ -3,6 +3,7 @@ import hljs from "highlight.js";
 import FileVersionList from "./FileVersionList";
 import api from "../config/axios";
 import { toast } from "react-hot-toast";
+import "../styles/components/CodeEditor.css";
 
 const CodeEditor = ({
   currentFile,
@@ -18,6 +19,7 @@ const CodeEditor = ({
   project,
   allFileVersions = {}, // NEW: Receive all file versions
   onLoadProjectVersion, // NEW: Handler for loading entire project version
+  forceRefresh, // NEW: Force refresh function
   isLoadingVersions,
 }) => {
   const [currentVersion, setCurrentVersion] = useState(null);
@@ -86,15 +88,20 @@ const CodeEditor = ({
 
   if (!currentFile) {
     return (
-      <div className="code-editor flex-grow bg-zinc-700 flex items-center justify-center">
-        <div className="text-white text-center">
-          <div className="mb-4">
-            <i className="ri-code-s-slash-line text-6xl text-gray-500"></i>
+      <div className="code-editor code-editor--welcome">
+        <div className="code-editor__welcome-content">
+          <div className="code-editor__welcome-icon">
+            <i className="ri-code-s-slash-line"></i>
           </div>
-          <p className="text-lg font-semibold">No file selected</p>
-          <p className="text-sm text-gray-400">
-            Select a file from the explorer or generate files with @ai commands
+          <p className="code-editor__welcome-title">Welcome to DevMetaAI</p>
+          <p className="code-editor__welcome-subtitle">
+            Select a file from the explorer to start editing, or use AI commands
+            to generate new files
           </p>
+          <div className="code-editor__welcome-hint">
+            <i className="ri-lightbulb-line"></i>
+            <span>Try typing @ai to get started</span>
+          </div>
         </div>
       </div>
     );
@@ -105,14 +112,14 @@ const CodeEditor = ({
   const isModified = fileData?.isModified;
 
   return (
-    <div className="code-editor flex-grow bg-zinc-700 flex flex-col min-w-0 overflow-hidden">
-      <div className="top flex gap-1 p-1 justify-between bg-zinc-800">
-        <div className="actions flex gap-2">
+    <div className="code-editor">
+      <div className="code-editor__header">
+        <div className="code-editor__actions">
           {currentVersion && (
-            <div className="version-info bg-purple-900 text-white text-xs px-2 py-1 rounded flex items-center">
+            <div className="code-editor__version-info">
               <span>Project Version {currentVersion.version}</span>
               <button
-                className="ml-2 bg-purple-700 px-1 rounded hover:bg-purple-600"
+                className="code-editor__version-reset"
                 onClick={() => {
                   setCurrentVersion(null);
                   // Reload latest project state
@@ -126,7 +133,7 @@ const CodeEditor = ({
           )}
 
           <button
-            className="bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1 rounded transition-colors"
+            className="code-editor__btn code-editor__btn--start"
             onClick={async () => {
               try {
                 if (!webContainer) {
@@ -200,7 +207,7 @@ const CodeEditor = ({
             Start
           </button>
           <button
-            className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1 rounded transition-colors"
+            className="code-editor__btn code-editor__btn--test"
             onClick={async () => {
               try {
                 const response = await fetch("http://localhost:3000");
@@ -218,30 +225,36 @@ const CodeEditor = ({
           >
             Test Server
           </button>
+          <button
+            className="code-editor__btn code-editor__btn--refresh"
+            onClick={() => {
+              // Call the forceRefresh function passed from parent
+              if (forceRefresh) {
+                forceRefresh();
+              }
+            }}
+            title="Refresh project files"
+          >
+            <i className="ri-refresh-line"></i>
+          </button>
         </div>
 
-        <div
-          className="file-tabs flex gap-1 overflow-x-auto overflow-y-hidden flex-nowrap"
-          style={{
-            scrollbarWidth: "thin",
-            scrollbarColor: "#6366f1 transparent",
-          }}
-        >
+        <div className="code-editor__tabs">
           {openFiles.map((file) => (
             <div
               key={file}
-              className={`code-editor-header flex justify-between items-center p-1 px-2 min-w-32 max-w-44 rounded flex-shrink-0 transition-colors cursor-pointer ${
+              className={`code-editor__tab ${
                 currentFile === file
-                  ? "bg-indigo-600 text-white"
-                  : "bg-slate-600 text-gray-200 hover:bg-slate-500"
+                  ? "code-editor__tab--active"
+                  : "code-editor__tab--inactive"
               }`}
               onClick={() => setCurrentFile && setCurrentFile(file)}
             >
-              <h1 className="font-semibold text-xs lg:text-sm truncate">
+              <h1 className="code-editor__tab-title">
                 {file.split("/").pop()}
               </h1>
               <button
-                className="ml-2 text-gray-400 hover:text-white focus:outline-0 focus:border-0 flex-shrink-0"
+                className="code-editor__tab-close"
                 onClick={(e) => {
                   e.stopPropagation();
                   setOpenFiles &&
@@ -255,23 +268,20 @@ const CodeEditor = ({
                   }
                 }}
               >
-                <i className="ri-close-fill text-sm" />
+                <i className="ri-close-line" />
               </button>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Editor Area - 80% height */}
-      <div
-        className="editor-section flex-grow bg-zinc-800"
-        style={{ height: "80%" }}
-      >
+      {/* Editor Area - Fixed height with flex-grow */}
+      <div className="code-editor__editor-section">
         {fileTree[currentFile] && fileTree[currentFile].file ? (
-          <div className="code-editor-area h-full overflow-auto bg-slate-50">
-            <pre className="hljs h-full">
+          <div className="code-editor__area">
+            <pre className="code-editor__pre">
               <code
-                className="hljs h-full outline-none block"
+                className="code-editor__code"
                 contentEditable
                 suppressContentEditableWarning
                 onBlur={handleContentEdit}
@@ -284,44 +294,62 @@ const CodeEditor = ({
                   overflowWrap: "break-word",
                   paddingBottom: "2rem",
                   counterSet: "line-numbering",
+                  backgroundColor: "transparent",
+                  color: "#e2e8f0",
                 }}
               />
             </pre>
           </div>
         ) : (
-          <div className="flex items-center justify-center h-full text-gray-400">
-            <div className="text-center">
-              <i className="ri-file-code-line text-4xl mb-2"></i>
-              <p>Select a file to view its content</p>
+          <div className="code-editor__empty">
+            <div className="code-editor__empty-content">
+              <div className="code-editor__empty-icon">
+                <i className="ri-file-code-line"></i>
+              </div>
+              <p className="code-editor__empty-title">No file selected</p>
+              <p className="code-editor__empty-subtitle">
+                Choose a file from the explorer to start editing
+              </p>
             </div>
           </div>
         )}
       </div>
 
-      {/* Terminal Area - 20% height */}
-      <div
-        className="terminal-section bg-slate-900 border-t border-slate-700"
-        style={{ height: "20%" }}
-      >
-        <div className="h-full flex flex-col">
-          <div className="flex items-center justify-between p-2 border-b border-slate-700">
-            <h3 className="text-white text-sm font-medium">Terminal</h3>
+      {/* Terminal Area - Fixed 25% height */}
+      <div className="code-editor__terminal">
+        <div className="code-editor__terminal-container">
+          <div className="code-editor__terminal-header">
+            <div className="code-editor__terminal-title-group">
+              <div className="code-editor__terminal-icon">
+                <i className="ri-terminal-line"></i>
+              </div>
+              <h3 className="code-editor__terminal-title">Terminal</h3>
+              <div className="code-editor__terminal-status">
+                <div className="code-editor__terminal-status-dot"></div>
+                <span className="code-editor__terminal-status-text">Ready</span>
+              </div>
+            </div>
             <button
-              className="text-gray-400 hover:text-white text-xs px-2 py-1 rounded hover:bg-slate-700 transition-colors"
+              className="code-editor__terminal-clear"
               onClick={() => setLogs([])}
             >
+              <i className="ri-delete-bin-line"></i>
               Clear
             </button>
           </div>
-          <div className="flex-1 overflow-y-auto p-2 text-white text-sm font-mono">
+          <div className="code-editor__terminal-content">
             {logs && logs.length > 0 ? (
               logs.map((log, index) => (
-                <p key={index} className="mb-1">
-                  {log}
-                </p>
+                <div key={index} className="code-editor__terminal-log">
+                  <span className="code-editor__terminal-prompt">$</span>
+                  <p className="code-editor__terminal-text">{log}</p>
+                </div>
               ))
             ) : (
-              <p className="text-gray-400">No terminal output yet...</p>
+              <div className="code-editor__terminal-empty">
+                <i className="ri-information-line"></i>
+                <p>Terminal ready for output...</p>
+              </div>
             )}
           </div>
         </div>

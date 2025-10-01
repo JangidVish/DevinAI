@@ -1,31 +1,24 @@
-import React, { useEffect} from 'react'
+import React, { useEffect } from "react";
 
-import {useNavigate } from 'react-router-dom'
+import { useNavigate } from "react-router-dom";
 
+const UserAuth = ({ children }) => {
+  const token = localStorage.getItem("token");
 
-const UserAuth = ({children}) => {
+  const navigate = useNavigate();
 
+  useEffect(() => {
+    if (!token || token === "undefined") {
+      navigate("/");
+    }
+  }, [token, navigate]);
 
-    const token = localStorage.getItem('token')
-    
-    const navigate = useNavigate();
+  // Don't render children if there's no valid token
+  if (!token || token === "undefined") {
+    return null;
+  }
 
-useEffect(()=>{
-    
-        if(!token || token === "undefined"){
-            navigate("/login")
-        }
-    },[token, navigate])
+  return <>{children}</>;
+};
 
-
-
-
-  return (
-    <>
-    {children}
-    
-    </>
-  )
-}
-
-export default UserAuth
+export default UserAuth;

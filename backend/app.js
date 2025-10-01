@@ -182,7 +182,7 @@ io.on("connection", (socket) => {
 });
 
 app.get("/", (req, res) => {
-  res.send("Hello, DevinAI Backend!");
+  res.send("Hello, DevMate AI Backend!");
 });
 
 server.listen(PORT, () => {
