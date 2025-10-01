@@ -1,0 +1,500 @@
+/* Code Editor Component Styles */
+
+/* Main Code Editor Container */
+.code-editor {
+  flex: 1;
+  background-color: rgb(63, 63, 70);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.code-editor--welcome {
+  background: linear-gradient(135deg, rgb(30, 41, 59), rgb(51, 65, 85));
+  justify-content: center;
+  align-items: center;
+}
+
+/* Welcome Screen */
+.code-editor__welcome-content {
+  text-align: center;
+}
+
+.code-editor__welcome-icon {
+  width: 5rem;
+  height: 5rem;
+  background-color: rgba(30, 41, 59, 0.5);
+  border-radius: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem auto;
+}
+
+.code-editor__welcome-icon i {
+  font-size: 1.875rem;
+  color: rgb(100, 116, 139);
+}
+
+.code-editor__welcome-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: white;
+  margin: 0 0 0.75rem 0;
+}
+
+.code-editor__welcome-subtitle {
+  font-size: 0.875rem;
+  color: rgb(148, 163, 184);
+  max-width: 28rem;
+  margin: 0 auto;
+  line-height: 1.625;
+}
+
+.code-editor__welcome-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  font-size: 0.75rem;
+  color: rgb(100, 116, 139);
+}
+
+/* Header Section */
+.code-editor__header {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  justify-content: space-between;
+  background-color: rgb(39, 39, 42);
+}
+
+.code-editor__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.code-editor__version-info {
+  background-color: rgb(88, 28, 135);
+  color: white;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+}
+
+.code-editor__version-reset {
+  margin-left: 0.5rem;
+  background-color: rgb(126, 34, 206);
+  padding: 0 0.25rem;
+  border-radius: 0.25rem;
+  border: none;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.code-editor__version-reset:hover {
+  background-color: rgb(147, 51, 234);
+}
+
+/* Action Buttons */
+.code-editor__btn {
+  color: white;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.code-editor__btn--start {
+  background-color: rgb(22, 163, 74);
+}
+
+.code-editor__btn--start:hover {
+  background-color: rgb(21, 128, 61);
+}
+
+.code-editor__btn--test {
+  background-color: rgb(37, 99, 235);
+}
+
+.code-editor__btn--test:hover {
+  background-color: rgb(29, 78, 216);
+}
+
+.code-editor__btn--refresh {
+  background-color: rgb(71, 85, 105);
+}
+
+.code-editor__btn--refresh:hover {
+  background-color: rgb(51, 65, 85);
+}
+
+/* File Tabs */
+.code-editor__tabs {
+  display: flex;
+  gap: 0.25rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex-wrap: nowrap;
+  scrollbar-width: thin;
+  scrollbar-color: #6366f1 transparent;
+}
+
+.code-editor__tabs::-webkit-scrollbar {
+  height: 4px;
+}
+
+.code-editor__tabs::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.code-editor__tabs::-webkit-scrollbar-thumb {
+  background: #6366f1;
+  border-radius: 2px;
+}
+
+.code-editor__tab {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  min-width: 8rem;
+  max-width: 11rem;
+  border-radius: 0.25rem;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.code-editor__tab--active {
+  background-color: rgb(79, 70, 229);
+  color: white;
+}
+
+.code-editor__tab--inactive {
+  background-color: rgb(71, 85, 105);
+  color: rgb(229, 231, 235);
+}
+
+.code-editor__tab--inactive:hover {
+  background-color: rgb(100, 116, 139);
+}
+
+.code-editor__tab-title {
+  font-weight: 600;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+}
+
+@media (min-width: 1024px) {
+  .code-editor__tab-title {
+    font-size: 0.875rem;
+  }
+}
+
+.code-editor__tab-close {
+  margin-left: 0.5rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgb(148, 163, 184);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.code-editor__tab-close:hover {
+  color: white;
+  background-color: rgba(71, 85, 105, 0.5);
+}
+
+.code-editor__tab-close:focus {
+  outline: none;
+  border: none;
+}
+
+.code-editor__tab-close i {
+  font-size: 0.75rem;
+}
+
+/* Editor Section */
+.code-editor__editor-section {
+  flex: 1;
+  background: linear-gradient(135deg, rgb(30, 41, 59), rgb(51, 65, 85));
+  min-height: 0;
+  overflow: hidden;
+}
+
+.code-editor__area {
+  height: 100%;
+  overflow: auto;
+  background-color: rgb(15, 23, 42);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 102, 241, 0.5) rgba(30, 41, 59, 0.3);
+}
+
+.code-editor__area::-webkit-scrollbar {
+  width: 6px;
+}
+
+.code-editor__area::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.3);
+  border-radius: 3px;
+}
+
+.code-editor__area::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(99, 102, 241, 0.6), rgba(147, 51, 234, 0.6));
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.code-editor__area::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(99, 102, 241, 0.8), rgba(147, 51, 234, 0.8));
+}
+
+.code-editor__pre {
+  height: 100%;
+  padding: 1rem;
+  margin: 0;
+}
+
+.code-editor__code {
+  height: 100%;
+  outline: none;
+  display: block;
+  font-size: 0.875rem;
+  line-height: 1.625;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  padding-bottom: 2rem;
+  counter-set: line-numbering;
+  background-color: transparent;
+  color: #e2e8f0;
+}
+
+/* Empty State */
+.code-editor__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: rgb(148, 163, 184);
+}
+
+.code-editor__empty-content {
+  text-align: center;
+}
+
+.code-editor__empty-icon {
+  width: 4rem;
+  height: 4rem;
+  background-color: rgba(30, 41, 59, 0.5);
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem auto;
+}
+
+.code-editor__empty-icon i {
+  font-size: 1.5rem;
+  color: rgb(100, 116, 139);
+}
+
+.code-editor__empty-title {
+  font-size: 1.125rem;
+  font-weight: 500;
+  margin: 0 0 0.5rem 0;
+}
+
+.code-editor__empty-subtitle {
+  font-size: 0.875rem;
+  color: rgb(100, 116, 139);
+  max-width: 16rem;
+  margin: 0 auto;
+}
+
+/* Terminal Section */
+.code-editor__terminal {
+  height: 25%;
+  background-color: rgb(2, 6, 23);
+  border-top: 1px solid rgba(51, 65, 85, 0.5);
+  flex-shrink: 0;
+}
+
+.code-editor__terminal-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.code-editor__terminal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+  background-color: rgba(15, 23, 42, 0.5);
+}
+
+.code-editor__terminal-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.code-editor__terminal-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  background-color: rgb(22, 163, 74);
+  border-radius: 0.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.code-editor__terminal-icon i {
+  color: white;
+  font-size: 0.75rem;
+}
+
+.code-editor__terminal-title {
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+.code-editor__terminal-status {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: 0.5rem;
+}
+
+.code-editor__terminal-status-dot {
+  width: 0.375rem;
+  height: 0.375rem;
+  background-color: rgb(34, 197, 94);
+  border-radius: 50%;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.code-editor__terminal-status-text {
+  font-size: 0.75rem;
+  color: rgb(148, 163, 184);
+}
+
+.code-editor__terminal-clear {
+  color: rgb(148, 163, 184);
+  font-size: 0.75rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(71, 85, 105, 0.3);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.code-editor__terminal-clear:hover {
+  color: white;
+  background-color: rgba(51, 65, 85, 0.5);
+  border-color: rgba(100, 116, 139, 0.5);
+}
+
+.code-editor__terminal-clear i {
+  margin-right: 0.25rem;
+}
+
+.code-editor__terminal-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem;
+  color: rgb(241, 245, 249);
+  font-size: 0.875rem;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  background-color: rgba(2, 6, 23, 0.5);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 102, 241, 0.5) rgba(30, 41, 59, 0.3);
+}
+
+.code-editor__terminal-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.code-editor__terminal-content::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.3);
+  border-radius: 3px;
+}
+
+.code-editor__terminal-content::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(99, 102, 241, 0.6), rgba(147, 51, 234, 0.6));
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.code-editor__terminal-content::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(99, 102, 241, 0.8), rgba(147, 51, 234, 0.8));
+}
+
+.code-editor__terminal-log {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s ease;
+}
+
+.code-editor__terminal-log:hover {
+  background-color: rgba(30, 41, 59, 0.3);
+}
+
+.code-editor__terminal-prompt {
+  color: rgb(100, 116, 139);
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  margin-top: 0.125rem;
+}
+
+.code-editor__terminal-text {
+  flex: 1;
+  color: rgb(226, 232, 240);
+  margin: 0;
+}
+
+.code-editor__terminal-empty {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: rgb(100, 116, 139);
+  padding: 1rem;
+}
+
+.code-editor__terminal-empty i {
+  font-size: 1.125rem;
+}
+
+.code-editor__terminal-empty p {
+  margin: 0;
+}

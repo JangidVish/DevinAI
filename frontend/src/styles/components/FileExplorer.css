@@ -1,0 +1,551 @@
+/* File Explorer Component Styles */
+
+/* Main Explorer Container */
+.file-explorer {
+  height: 100%;
+  width: 100%;
+  background-color: rgb(15, 23, 42);
+  flex-shrink: 0;
+  border-right: 1px solid rgb(51, 65, 85);
+  overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  .file-explorer {
+    width: 16rem;
+    max-width: 20rem;
+    min-width: 13rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .file-explorer {
+    width: 18rem;
+  }
+}
+
+.file-explorer__container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Header Section */
+.file-explorer__header {
+  padding: 0.5rem;
+  border-bottom: 1px solid rgb(51, 65, 85);
+  flex-shrink: 0;
+}
+
+@media (min-width: 1024px) {
+  .file-explorer__header {
+    padding: 0.75rem;
+  }
+}
+
+.file-explorer__title {
+  color: white;
+  font-weight: 700;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+@media (min-width: 1024px) {
+  .file-explorer__title {
+    font-size: 1rem;
+  }
+}
+
+.file-explorer__version-info {
+  margin-top: 0.25rem;
+}
+
+.file-explorer__version-badge {
+  font-size: 0.75rem;
+  background-color: rgb(147, 51, 234);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  white-space: nowrap;
+}
+
+/* Dropdown Section */
+.file-explorer__dropdown {
+  margin-top: 0.5rem;
+  position: relative;
+}
+
+.file-explorer__dropdown-btn {
+  width: 100%;
+  text-align: left;
+  background-color: rgb(30, 41, 59);
+  color: white;
+  font-size: 0.75rem;
+  padding: 0.375rem 0.5rem;
+  border-radius: 0.25rem;
+  border: 1px solid rgb(71, 85, 105);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  cursor: pointer;
+}
+
+.file-explorer__dropdown-btn:hover {
+  background-color: rgb(51, 65, 85);
+}
+
+.file-explorer__dropdown-btn--open i {
+  transform: rotate(180deg);
+}
+
+.file-explorer__dropdown-btn i {
+  transition: transform 0.2s ease;
+}
+
+.file-explorer__dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  margin-top: 0.25rem;
+  background-color: rgb(30, 41, 59);
+  border: 1px solid rgb(71, 85, 105);
+  border-radius: 0.375rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  max-height: 12rem;
+  overflow-y: auto;
+  animation: dropdown-slide 0.2s ease-out;
+}
+
+.file-explorer__dropdown-empty {
+  padding: 0.5rem;
+  color: rgb(156, 163, 175);
+  font-size: 0.75rem;
+}
+
+.file-explorer__dropdown-item {
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid rgb(51, 65, 85);
+  background: none;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  cursor: pointer;
+  color: white;
+}
+
+.file-explorer__dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.file-explorer__dropdown-item:hover {
+  background-color: rgb(51, 65, 85);
+}
+
+.file-explorer__dropdown-item--latest {
+  background-color: rgb(51, 65, 85);
+}
+
+.file-explorer__version-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.file-explorer__version-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.file-explorer__version-tag {
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  color: white;
+}
+
+.file-explorer__version-tag--latest {
+  background-color: rgb(22, 163, 74);
+}
+
+.file-explorer__version-tag--normal {
+  background-color: rgb(147, 51, 234);
+}
+
+.file-explorer__version-count {
+  color: rgb(156, 163, 175);
+  font-size: 0.75rem;
+}
+
+.file-explorer__version-desc {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: rgb(100, 116, 139);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Loading State */
+.file-explorer__loading {
+  padding: 1rem;
+  text-align: center;
+}
+
+.file-explorer__spinner {
+  animation: spin 1s linear infinite;
+  border-radius: 50%;
+  height: 1.5rem;
+  width: 1.5rem;
+  border: 2px solid transparent;
+  border-bottom-color: rgb(99, 102, 241);
+  margin: 0 auto 0.5rem;
+}
+
+.file-explorer__loading-text {
+  color: rgb(156, 163, 175);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+/* Empty State */
+.file-explorer__empty {
+  padding: 1rem;
+  text-align: center;
+}
+
+.file-explorer__empty-title {
+  color: rgb(156, 163, 175);
+  font-size: 0.875rem;
+  margin: 0 0 0.25rem 0;
+}
+
+.file-explorer__empty-subtitle {
+  color: rgb(100, 116, 139);
+  font-size: 0.75rem;
+  margin: 0;
+}
+
+/* File List */
+.file-explorer__file-list {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 102, 241, 0.5) rgba(30, 41, 59, 0.3);
+}
+
+.file-explorer__file-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.file-explorer__file-list::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.3);
+  border-radius: 3px;
+}
+
+.file-explorer__file-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(99, 102, 241, 0.6), rgba(147, 51, 234, 0.6));
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.file-explorer__file-list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(99, 102, 241, 0.8), rgba(147, 51, 234, 0.8));
+}
+
+/* File Items */
+.file-explorer__file-item {
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  transition: all 0.2s ease;
+  border: none;
+  border-radius: 0 0.375rem 0.375rem 0;
+  text-align: left;
+  cursor: pointer;
+  animation: file-item-enter 0.3s ease-out;
+}
+
+@media (min-width: 1024px) {
+  .file-explorer__file-item {
+    padding: 0.75rem;
+  }
+}
+
+.file-explorer__file-item--selected {
+  background-color: rgb(67, 56, 202);
+  border-left: 4px solid rgb(129, 140, 248);
+}
+
+.file-explorer__file-item--normal {
+  background-color: rgb(51, 65, 85);
+}
+
+.file-explorer__file-item--normal:hover {
+  background-color: rgb(71, 85, 105);
+}
+
+.file-explorer__file-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.file-explorer__file-main {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.file-explorer__file-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.file-explorer__file-dot--selected {
+  background-color: rgb(165, 180, 252);
+}
+
+.file-explorer__file-dot--normal {
+  background-color: rgb(107, 114, 128);
+}
+
+.file-explorer__file-name {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: white;
+  margin: 0;
+}
+
+@media (min-width: 1024px) {
+  .file-explorer__file-name {
+    font-size: 0.875rem;
+  }
+}
+
+.file-explorer__file-status {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+}
+
+.file-explorer__version-badge--latest {
+  background-color: rgb(22, 163, 74);
+}
+
+.file-explorer__version-badge--normal {
+  background-color: rgb(79, 70, 229);
+}
+
+.file-explorer__status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+}
+
+.file-explorer__status-dot--ai {
+  background-color: rgb(59, 130, 246);
+}
+
+.file-explorer__status-dot--modified {
+  background-color: rgb(249, 115, 22);
+}
+
+.file-explorer__file-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.25rem;
+  min-width: 0;
+}
+
+.file-explorer__file-path {
+  font-size: 0.75rem;
+  color: rgb(156, 163, 175);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  margin: 0;
+}
+
+.file-explorer__file-time {
+  font-size: 0.75rem;
+  color: rgb(100, 116, 139);
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+  display: none;
+  margin: 0;
+}
+
+@media (min-width: 1024px) {
+  .file-explorer__file-time {
+    display: block;
+  }
+}
+
+.file-explorer__file-tags {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.file-explorer__tag {
+  font-size: 0.75rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  white-space: nowrap;
+}
+
+.file-explorer__tag--ai {
+  background-color: rgb(30, 58, 138);
+  color: rgb(191, 219, 254);
+}
+
+.file-explorer__tag--modified {
+  background-color: rgb(154, 52, 18);
+  color: rgb(254, 215, 170);
+}
+
+/* File Explorer Layout Fixes - Complete horizontal scroll prevention */
+.explorer {
+  max-width: 100%;
+  width: 100%;
+  overflow-x: hidden !important;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  box-sizing: border-box;
+}
+
+.explorer *,
+.explorer *::before,
+.explorer *::after {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+.file-tree {
+  overflow-x: hidden !important;
+  overflow-y: auto;
+  width: 100%;
+  max-width: 100%;
+}
+
+.tree-element {
+  word-break: break-all !important;
+  overflow-wrap: break-word !important;
+  overflow-x: hidden !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.tree-element * {
+  word-break: break-all !important;
+  overflow-wrap: break-word !important;
+  hyphens: auto;
+  overflow-x: hidden !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+.tree-element p {
+  word-break: break-all !important;
+  overflow-wrap: break-word !important;
+  hyphens: auto;
+  white-space: normal !important;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.tree-element .flex {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+.tree-element .text-xs {
+  word-break: break-all !important;
+  overflow-wrap: break-word !important;
+  white-space: normal !important;
+  line-height: 1.2;
+}
+
+/* Force all text content to wrap */
+.explorer .truncate {
+  white-space: normal !important;
+  word-break: break-all !important;
+  overflow-wrap: break-word !important;
+  text-overflow: clip;
+  overflow: hidden;
+}
+
+/* Additional safety measures */
+.file-tree .flex-1 {
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.file-tree .gap-2,
+.file-tree .gap-3 {
+  gap: 0.25rem !important;
+}
+
+/* Status badges sizing */
+.tree-element span[class*="bg-gradient"] {
+  font-size: 0.625rem !important;
+  padding: 0.125rem 0.375rem !important;
+  flex-shrink: 0;
+  max-width: 4rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Complete horizontal scroll elimination */
+.explorer,
+.file-tree,
+.tree-element {
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* Internet Explorer 10+ */
+}
+
+.explorer::-webkit-scrollbar,
+.file-tree::-webkit-scrollbar,
+.tree-element::-webkit-scrollbar {
+  display: none !important; /* Safari and Chrome */
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Force container constraints */
+.explorer {
+  contain: layout style !important;
+  isolation: isolate !important;
+}
+
+/* Ensure no child can exceed container width */
+.explorer * {
+  max-width: inherit !important;
+}

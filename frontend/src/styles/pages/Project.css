@@ -1,0 +1,9 @@
+/* Project Page Styles */
+
+/* Project header improvements */
+.project-header h1 {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

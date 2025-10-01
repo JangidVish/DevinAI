@@ -434,6 +434,7 @@ const Project = () => {
           projectVersion={currentProjectVersion}
           project={project}
           onLoadProjectVersion={handleLoadProjectVersion}
+          projectVersions={projectVersions}
         />
         <div className="flex flex-col flex-grow min-w-0 overflow-hidden">
           <CodeEditor

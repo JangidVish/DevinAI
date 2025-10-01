@@ -4,6 +4,7 @@ import SyntaxHighlightedCode from "./SyntaxHighlightedCode";
 import api from "../config/axios";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "react-hot-toast";
+import "../styles/components/ChatPanel.css";
 
 const ChatPanel = ({
   messages = [],
@@ -36,46 +37,42 @@ const ChatPanel = ({
   };
 
   return (
-    <div className="conversation-area flex-grow flex flex-col p-3 min-w-0 overflow-hidden bg-gradient-to-b from-slate-900/50 to-slate-950/50 backdrop-blur-sm border-l border-slate-800/50">
+    <div className="chat-panel">
       {/* Chat Header */}
-      <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-700/50">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
-            <i className="ri-robot-line text-white text-sm"></i>
+      <div className="chat-panel__header">
+        <div className="chat-panel__header-left">
+          <div className="chat-panel__ai-avatar">
+            <i className="ri-robot-line"></i>
           </div>
-          <div>
-            <h3 className="text-white font-semibold text-sm">AI Assistant</h3>
-            <p className="text-slate-400 text-xs">Always ready to help</p>
+          <div className="chat-panel__ai-info">
+            <h3 className="chat-panel__ai-title">AI Assistant</h3>
+            <p className="chat-panel__ai-subtitle">Always ready to help</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-          <span className="text-xs text-slate-400">Online</span>
+        <div className="chat-panel__status">
+          <div className="chat-panel__status-dot"></div>
+          <span className="chat-panel__status-text">Online</span>
         </div>
       </div>
 
       {/* Chat Messages */}
       {isLoadingMessages ? (
-        <div className="flex flex-col justify-center items-center h-full text-slate-300">
-          <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mb-3"></div>
-          <p className="text-sm">Loading conversation...</p>
+        <div className="chat-panel__loading">
+          <div className="chat-panel__loading-spinner"></div>
+          <p className="chat-panel__loading-text">Loading conversation...</p>
         </div>
       ) : messages.length === 0 ? (
-        <div className="flex flex-col justify-center items-center h-full text-slate-400">
-          <div className="w-16 h-16 bg-slate-800/50 rounded-2xl flex items-center justify-center mb-4">
-            <i className="ri-chat-3-line text-2xl text-slate-500"></i>
+        <div className="chat-panel__empty-state">
+          <div className="chat-panel__empty-icon">
+            <i className="ri-chat-3-line"></i>
           </div>
-          <p className="text-sm font-medium mb-2">Start a conversation</p>
-          <p className="text-xs text-slate-500 text-center max-w-48">
+          <p className="chat-panel__empty-title">Start a conversation</p>
+          <p className="chat-panel__empty-subtitle">
             Ask me anything about your project or development needs
           </p>
         </div>
       ) : (
-        <div
-          ref={messageBox}
-          className="message-box flex-grow flex flex-col gap-4 overflow-y-auto px-1 lg:px-2 min-w-0 custom-scrollbar"
-          style={{ maxHeight: "calc(100vh - 200px)" }}
-        >
+        <div ref={messageBox} className="chat-panel__messages">
           {messages.map((msg, index) => {
             if (!msg) return null;
 
@@ -96,7 +93,7 @@ const ChatPanel = ({
             return (
               <div
                 key={`message-${index}-${msg._id}`}
-                className="flex flex-col gap-3 animate-fade-in-up"
+                className="chat-panel__message-container"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <div
@@ -190,8 +187,8 @@ const ChatPanel = ({
         </div>
       )}
 
-      <div className="relative mt-4 pt-4 border-t border-slate-700/50">
-        <div className="inputField flex items-center gap-3 p-3 bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl flex-shrink-0 focus-within:border-indigo-500/50 focus-within:shadow-lg focus-within:shadow-indigo-500/10 transition-all duration-200">
+      <div className="chat-panel__input-section">
+        <div className="chat-panel__input-container">
           <div className="flex items-center gap-2 text-slate-400">
             <i className="ri-chat-3-line text-sm"></i>
           </div>
@@ -200,7 +197,7 @@ const ChatPanel = ({
             value={message || ""}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Type your message..."
-            className="focus:outline-none flex-grow bg-transparent text-white text-sm lg:text-base min-w-0 placeholder-slate-500"
+            className="chat-panel__input"
             onKeyPress={(e) => {
               if (e.key === "Enter") {
                 send();
@@ -215,11 +212,11 @@ const ChatPanel = ({
               <i className="ri-attachment-2 text-sm"></i>
             </button>
             <button
-              className="p-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 rounded-full transition-all duration-200 flex-shrink-0 shadow-lg hover:shadow-indigo-500/25 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="chat-panel__send-btn"
               onClick={send}
               disabled={!message?.trim()}
             >
-              <i className="ri-send-plane-2-fill text-sm text-white" />
+              <i className="ri-send-plane-2-fill" />
             </button>
           </div>
         </div>

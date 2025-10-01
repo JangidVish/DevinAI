@@ -1,0 +1,161 @@
+/* AddUserPopUp Component Styles */
+
+.add-user-popup__overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(39, 39, 42, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.add-user-popup__content {
+  display: flex;
+  flex-direction: column;
+  background-color: rgba(17, 24, 39, 0.9);
+  backdrop-filter: blur(4px);
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  min-height: 40vh;
+  max-height: 80vh;
+  overflow-y: auto;
+  min-width: 450px;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.add-user-popup__title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: white;
+}
+
+.add-user-popup__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 0;
+}
+
+.add-user-popup__spinner {
+  animation: spin 1s linear infinite;
+  border-radius: 50%;
+  height: 2rem;
+  width: 2rem;
+  border: 2px solid transparent;
+  border-bottom-color: rgb(99, 102, 241);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.add-user-popup__user-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.add-user-popup__users {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.add-user-popup__user-item {
+  padding: 0.75rem 1rem;
+  font-size: 1.125rem;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: rgba(31, 41, 55, 0.5);
+  border-radius: 0.5rem;
+  transition: background-color 0.2s ease;
+}
+
+.add-user-popup__user-item:hover {
+  background-color: rgba(55, 65, 81, 0.5);
+}
+
+.add-user-popup__user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.add-user-popup__user-avatar {
+  width: 2rem;
+  height: 2rem;
+  background-color: rgb(99, 102, 241);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-user-popup__user-avatar i {
+  color: white;
+  font-size: 0.875rem;
+}
+
+.add-user-popup__user-email {
+  color: rgb(209, 213, 219);
+}
+
+.add-user-popup__add-btn {
+  padding: 0.25rem 0.75rem;
+  background-color: rgb(99, 102, 241);
+  color: white;
+  border-radius: 0.375rem;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.add-user-popup__add-btn:hover {
+  background-color: rgb(79, 70, 229);
+}
+
+.add-user-popup__empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 0;
+}
+
+.add-user-popup__empty-text {
+  color: rgb(156, 163, 175);
+}
+
+.add-user-popup__footer {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgb(55, 65, 81);
+}
+
+.add-user-popup__cancel-btn {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  background-color: rgb(75, 85, 99);
+  color: white;
+  transition: background-color 0.2s ease;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.add-user-popup__cancel-btn:hover {
+  background-color: rgb(55, 65, 81);
+}

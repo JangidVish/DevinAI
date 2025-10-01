@@ -1,151 +1,443 @@
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
+import "../styles/pages/Landing.css";
 
 const Landing = () => {
+  const [mousePosition, setMousePosition] = React.useState({ x: 0, y: 0 });
+
   useEffect(() => {
-    // Intersection Observer for scroll animations
+    // Advanced mouse tracking with momentum and easing
+    let mouseVelocity = { x: 0, y: 0 };
+    let lastMousePos = { x: 0, y: 0 };
+
+    const handleMouseMove = (e) => {
+      const currentTime = Date.now();
+
+      // Calculate velocity
+      mouseVelocity.x = e.clientX - lastMousePos.x;
+      mouseVelocity.y = e.clientY - lastMousePos.y;
+
+      setMousePosition({ x: e.clientX, y: e.clientY });
+      lastMousePos = { x: e.clientX, y: e.clientY };
+
+      // Advanced CSS custom properties for complex effects
+      document.documentElement.style.setProperty("--mouse-x", `${e.clientX}px`);
+      document.documentElement.style.setProperty("--mouse-y", `${e.clientY}px`);
+      document.documentElement.style.setProperty(
+        "--mouse-velocity-x",
+        `${mouseVelocity.x}`
+      );
+      document.documentElement.style.setProperty(
+        "--mouse-velocity-y",
+        `${mouseVelocity.y}`
+      );
+
+      const x = (e.clientX / window.innerWidth) * 100;
+      const y = (e.clientY / window.innerHeight) * 100;
+      document.documentElement.style.setProperty("--hero-mask-x", `${x}%`);
+      document.documentElement.style.setProperty("--hero-mask-y", `${y}%`);
+
+      // Dynamic background distortion
+      const distortionX = (x - 50) * 0.1;
+      const distortionY = (y - 50) * 0.1;
+      document.documentElement.style.setProperty(
+        "--bg-distort-x",
+        `${distortionX}%`
+      );
+      document.documentElement.style.setProperty(
+        "--bg-distort-y",
+        `${distortionY}%`
+      );
+    };
+
+    // Advanced parallax with physics-based scrolling
+    let scrollVelocity = 0;
+    let lastScrollTop = 0;
+    let ticking = false;
+
+    const handleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const scrolled = window.pageYOffset;
+          scrollVelocity = scrolled - lastScrollTop;
+          lastScrollTop = scrolled;
+
+          // Multi-layer parallax with different speeds and physics
+          const parallaxElements = document.querySelectorAll(".parallax-layer");
+          parallaxElements.forEach((element, index) => {
+            const layer = index + 1;
+            const speed = 0.1 + layer * 0.15;
+            const resistance = 0.8 + layer * 0.1;
+            const yPos = -(scrolled * speed * resistance);
+            const rotation = scrollVelocity * 0.01;
+
+            element.style.transform = `translateY(${yPos}px) rotate(${rotation}deg)`;
+          });
+
+          // Advanced scroll progress with easing
+          const maxScroll = document.body.scrollHeight - window.innerHeight;
+          const scrollProgress = Math.min(scrolled / maxScroll, 1);
+          const easedProgress = 1 - Math.pow(1 - scrollProgress, 3); // Cubic easing
+
+          document.documentElement.style.setProperty(
+            "--scroll-progress",
+            easedProgress
+          );
+          document.documentElement.style.setProperty(
+            "--scroll-velocity",
+            Math.abs(scrollVelocity)
+          );
+
+          // Navigation state management
+          const nav = document.querySelector(".landing-page__nav");
+          if (scrolled > 100) {
+            nav?.classList.add("nav-scrolled");
+          } else {
+            nav?.classList.remove("nav-scrolled");
+          }
+
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    // Enhanced Intersection Observer with advanced trigger points
     const observerOptions = {
-      threshold: 0.1,
-      rootMargin: "0px 0px -50px 0px",
+      threshold: [0, 0.1, 0.25, 0.5, 0.75, 1],
+      rootMargin: "0px 0px -5% 0px",
     };
 
     const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
+      entries.forEach((entry, index) => {
+        const progress = entry.intersectionRatio;
+        const element = entry.target;
+
         if (entry.isIntersecting) {
-          entry.target.classList.add("animate-in");
+          // Staggered cascade animation
+          const delay = index * 150;
+
+          setTimeout(() => {
+            element.classList.add("animate-in");
+
+            // Add progressive enhancement based on element type
+            if (element.classList.contains("tech-card")) {
+              element.style.setProperty("--reveal-progress", progress);
+              element.classList.add("tech-reveal");
+            }
+
+            if (element.classList.contains("code-matrix")) {
+              element.classList.add("matrix-active");
+            }
+          }, delay);
         }
+
+        // Continuous progress tracking for scroll-driven animations
+        element.style.setProperty("--intersection-progress", progress);
       });
     }, observerOptions);
 
-    // Observe all sections
-    const sections = document.querySelectorAll(".fade-in-section");
+    // Observe all animated sections with enhanced selectors
+    const sections = document.querySelectorAll(
+      ".tech-reveal, .cascade-in, .matrix-effect, .glitch-text, .cyber-card, .neural-network"
+    );
     sections.forEach((section) => observer.observe(section));
 
+    // Initialize hero sequence with complex timing
+    const heroSequence = () => {
+      const heroElements = document.querySelectorAll(".hero-sequence");
+      heroElements.forEach((element, index) => {
+        const delay = index * 300 + 500; // Extended delays for dramatic effect
+        setTimeout(() => {
+          element.classList.add("sequence-active");
+        }, delay);
+      });
+    };
+
+    // Matrix digital rain effect initialization
+    const initMatrixRain = () => {
+      const canvas = document.createElement("canvas");
+      canvas.className = "matrix-rain";
+      canvas.style.position = "fixed";
+      canvas.style.top = "0";
+      canvas.style.left = "0";
+      canvas.style.width = "100%";
+      canvas.style.height = "100%";
+      canvas.style.pointerEvents = "none";
+      canvas.style.zIndex = "1";
+      canvas.style.opacity = "0.1";
+
+      document.body.appendChild(canvas);
+
+      const ctx = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const chars =
+        "01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン";
+      const matrix = chars.split("");
+      const drops = [];
+
+      for (let x = 0; x < canvas.width / 20; x++) {
+        drops[x] = 1;
+      }
+
+      const draw = () => {
+        ctx.fillStyle = "rgba(3, 7, 18, 0.04)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "#00ff88";
+        ctx.font = "15px monospace";
+
+        for (let i = 0; i < drops.length; i++) {
+          const text = matrix[Math.floor(Math.random() * matrix.length)];
+          ctx.fillText(text, i * 20, drops[i] * 20);
+
+          if (drops[i] * 20 > canvas.height && Math.random() > 0.975) {
+            drops[i] = 0;
+          }
+          drops[i]++;
+        }
+      };
+
+      setInterval(draw, 35);
+    };
+
+    // Delayed initialization for performance
+    setTimeout(heroSequence, 100);
+    setTimeout(initMatrixRain, 2000);
+
     return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("scroll", handleScroll);
       sections.forEach((section) => observer.unobserve(section));
+
+      // Cleanup matrix canvas
+      const matrixCanvas = document.querySelector(".matrix-rain");
+      if (matrixCanvas) {
+        matrixCanvas.remove();
+      }
     };
   }, []);
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-black via-slate-900 to-purple-950 text-white overflow-x-hidden overflow-y-auto">
-      {/* Navigation */}
-      <nav className="relative z-10 flex justify-between items-center p-6 lg:px-12 w-full">
-        <div className="flex items-center space-x-2">
-          <div className="w-10 h-10 bg-gradient-to-r from-indigo-600 to-purple-700 rounded-lg flex items-center justify-center">
-            <i className="ri-code-s-slash-fill text-xl text-white"></i>
+    <div className="landing-page">
+      {/* Subtle Cursor Tracking for Reveals */}
+      <div className="landing-page__cursor-overlay"></div>
+
+      {/* Enhanced Background with IDE Elements */}
+      <div className="landing-page__background">
+        {/* Base gradient */}
+        <div className="landing-page__base-gradient"></div>
+
+        {/* Cloud Effect */}
+        <div className="cloud-effect"></div>
+
+        {/* Radial Mask Effect */}
+        <div className="radial-mask"></div>
+
+        {/* Ethereal Particles */}
+        <div className="ethereal-particle"></div>
+        <div className="ethereal-particle"></div>
+        <div className="ethereal-particle"></div>
+        <div className="ethereal-particle"></div>
+        <div className="ethereal-particle"></div>
+        <div className="ethereal-particle"></div>
+        <div className="ethereal-particle"></div>
+        <div className="ethereal-particle"></div>
+
+        {/* Interactive Code Elements */}
+        <div className="group absolute top-16 left-20 w-80 h-48 pointer-events-auto">
+          <div className="code-reveal bg-gray-900/20 rounded-lg border border-gray-800/30 p-3 backdrop-blur-sm h-full w-full">
+            <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-700/30">
+              <div className="w-3 h-3 bg-red-500/70 rounded-full"></div>
+              <div className="w-3 h-3 bg-yellow-500/70 rounded-full"></div>
+              <div className="w-3 h-3 bg-green-500/70 rounded-full"></div>
+              <span className="text-xs text-gray-500 ml-2 font-mono">
+                DevMate.jsx
+              </span>
+            </div>
+            <div className="font-mono text-xs space-y-1">
+              <div className="text-gray-600">
+                <span className="text-purple-400">import</span>{" "}
+                <span className="text-blue-400">React</span>{" "}
+                <span className="text-purple-400">from</span>{" "}
+                <span className="text-green-400">'react'</span>;
+              </div>
+              <div className="text-gray-600">
+                <span className="text-purple-400">import</span>{" "}
+                <span className="text-blue-400">AI</span>{" "}
+                <span className="text-purple-400">from</span>{" "}
+                <span className="text-green-400">'@devmate/ai'</span>;
+              </div>
+              <div className="text-gray-600 mt-2">
+                <span className="text-purple-400">export default function</span>{" "}
+                <span className="text-yellow-400">DevMate</span>
+                <span className="text-gray-400">() {"{"}</span>
+              </div>
+              <div className="text-gray-600 ml-4">
+                <span className="text-purple-400">const</span> [
+                <span className="text-blue-400">code</span>,{" "}
+                <span className="text-blue-400">setCode</span>] ={" "}
+                <span className="text-yellow-400">AI.generate</span>(
+                <span className="text-green-400">'landing page'</span>);
+              </div>
+              <div className="text-gray-600 ml-4">
+                <span className="text-purple-400">return</span>{" "}
+                <span className="text-gray-400">&lt;</span>
+                <span className="text-red-400">LandingPage</span>
+                <span className="text-gray-400">/&gt;</span>;
+              </div>
+              <div className="text-gray-600">
+                <span className="text-gray-400">{"}"}</span>
+              </div>
+            </div>
           </div>
-          <span className="text-2xl font-bold bg-gradient-to-r from-indigo-300 to-purple-300 bg-clip-text text-transparent">
-            DevMate AI
-          </span>
         </div>
 
-        <div className="flex items-center space-x-4">
-          <Link
-            to="/login"
-            className="px-4 py-2 text-gray-200 hover:text-black transition-colors duration-200"
-          >
+        {/* Terminal Window */}
+        <div className="group absolute top-1/2 right-24 w-72 h-40 pointer-events-auto">
+          <div className="code-reveal bg-black/40 rounded-lg border border-gray-700/30 p-3 backdrop-blur-sm w-full h-full">
+            <div className="flex items-center gap-2 mb-2 pb-2 border-b border-gray-600/30">
+              <div className="w-3 h-3 bg-gray-600 rounded-full"></div>
+              <span className="text-xs text-gray-400 font-mono">Terminal</span>
+            </div>
+            <div className="font-mono text-xs space-y-1">
+              <div className="text-green-400">$ npm create devmate-app</div>
+              <div className="text-gray-500">
+                ✓ Creating DevMate AI project...
+              </div>
+              <div className="text-green-400">$ cd my-ai-app</div>
+              <div className="text-blue-400">🚀 DevMate AI initialized!</div>
+              <div className="text-yellow-400">
+                ⚡ Real-time collaboration ready
+              </div>
+              <div className="text-purple-400">🤖 AI assistant activated</div>
+              <div className="text-green-400 animate-pulse">$ _</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Config File Preview */}
+        <div className="group absolute bottom-32 left-32 w-64 h-36 pointer-events-auto">
+          <div className="code-reveal bg-gray-900/30 rounded-lg border border-gray-800/30 p-3 backdrop-blur-sm w-full h-full">
+            <div className="text-xs text-gray-400 mb-2 font-mono">
+              devmate.config.js
+            </div>
+            <div className="font-mono text-xs space-y-1">
+              <div className="text-gray-600">export default {"{"}</div>
+              <div className="text-gray-600 ml-2">
+                <span className="text-blue-400">"ai"</span>:{" "}
+                <span className="text-green-400">"advanced"</span>,
+              </div>
+              <div className="text-gray-600 ml-2">
+                <span className="text-blue-400">"collaboration"</span>:{" "}
+                <span className="text-green-400">true</span>,
+              </div>
+              <div className="text-gray-600 ml-2">
+                <span className="text-blue-400">"deployment"</span>:{" "}
+                <span className="text-green-400">"instant"</span>
+              </div>
+              <div className="text-gray-600">{"}"}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="landing-page__nav">
+        <div className="landing-page__nav-brand">
+          <div className="landing-page__nav-icon">
+            <i className="ri-code-s-slash-fill"></i>
+          </div>
+          <span className="landing-page__nav-title">DevMate AI</span>
+        </div>
+
+        <div className="landing-page__nav-actions">
+          <Link to="/login" className="landing-page__nav-link">
             Sign In
           </Link>
-          <Link
-            to="/signup"
-            className="px-6 py-2 bg-gradient-to-r from-black-800 to-purple-950 hover:from-indigo-700 hover:to-purple-700 rounded-lg font-semibold text-black transition-all duration-200 transform hover:scale-105"
-            style={{ textShadow: "0 1px 2px rgba(0, 0, 0, 0.5)" }}
-          >
+          <Link to="/signup" className="landing-page__nav-cta">
             Get Started
           </Link>
         </div>
       </nav>
 
-      {/* Background Elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-indigo-600 rounded-full mix-blend-multiply filter blur-xl opacity-15 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-600 rounded-full mix-blend-multiply filter blur-xl opacity-15 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-40 left-40 w-80 h-80 bg-slate-700 rounded-full mix-blend-multiply filter blur-xl opacity-15 animate-blob animation-delay-4000"></div>
-      </div>
-
       {/* Hero Section */}
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 pb-20 w-full">
-        <div className="text-center max-w-6xl mx-auto">
+      <div className="landing-page__hero">
+        <div className="landing-page__hero-content">
           {/* Main Heading */}
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 leading-tight">
-            <span className="bg-gradient-to-r from-white via-gray-200 to-indigo-200 bg-clip-text text-transparent">
-              Code with
-            </span>
+          <h1 className="landing-page__hero-title">
+            <span className="landing-page__hero-title-main">Code with</span>
             <br />
-            <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-indigo-600 bg-clip-text text-transparent">
-              AI Power
-            </span>
+            <span className="landing-page__hero-title-accent">AI Power</span>
           </h1>
 
           {/* Subtitle */}
-          <p className="text-xl md:text-2xl text-gray-200 mb-12 max-w-3xl mx-auto leading-relaxed">
+          <p className="landing-page__hero-subtitle">
             Experience the future of collaborative development with DevMate AI.
             Build, debug, and deploy projects faster than ever with intelligent
-            AI assistance.
+            AI assistance and real-time collaboration.
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
-            <Link
-              to="/signup"
-              className="px-8 py-4 bg-gradient-to-r from-indigo-950 to-purple-800 hover:from-indigo-800 hover:to-purple-700 rounded-xl font-semibold text-lg text-black hover:text-white transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-indigo-500/25"
-              style={{ textShadow: "0 1px 2px rgba(0, 0, 0, 0.5)" }}
-            >
+          <div className="landing-page__hero-actions">
+            <Link to="/signup" className="landing-page__hero-cta-primary">
               Start Building Free
-              <i className="ri-arrow-right-line ml-2"></i>
+              <i className="ri-arrow-right-line"></i>
             </Link>
-            <button
+            {/*<button
               onClick={() => {
-                // Scroll to features section or open a demo modal
                 document
                   .getElementById("features")
                   .scrollIntoView({ behavior: "smooth" });
               }}
-              className="px-8 py-4 border-2 border-indigo-500 hover:border-indigo-400 rounded-xl font-semibold text-lg text-white transition-all duration-300 hover:bg-indigo-500/10"
+              className="landing-page__hero-cta-secondary"
             >
               Watch Demo
-              <i className="ri-play-fill ml-2"></i>
-            </button>
+              <i className="ri-play-fill"></i>
+            </button>*/}
           </div>
 
           {/* Feature Cards */}
-          <div id="features" className="grid md:grid-cols-3 gap-8 mt-20">
-            <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 hover:bg-slate-800/50 transition-all duration-300 group">
-              <div className="w-16 h-16 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                <i className="ri-brain-fill text-2xl text-white"></i>
+          <div id="features" className="landing-page__features">
+            <div className="landing-page__feature-card spotlight-card group">
+              <div className="landing-page__feature-icon landing-page__feature-icon--ai">
+                <i className="ri-brain-fill"></i>
               </div>
-              <h3 className="text-2xl font-bold mb-4 text-white">
-                AI-Powered Coding
-              </h3>
-              <p className="text-gray-300 leading-relaxed">
+              <h3 className="landing-page__feature-title">AI-Powered Coding</h3>
+              <p className="landing-page__feature-description">
                 Let AI write, debug, and optimize your code. Focus on creativity
-                while we handle the complexity.
+                while we handle the complexity with advanced neural networks.
               </p>
             </div>
 
-            <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 hover:bg-slate-800/50 transition-all duration-300 group">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                <i className="ri-team-fill text-2xl text-white"></i>
+            <div className="landing-page__feature-card spotlight-card group">
+              <div className="landing-page__feature-icon landing-page__feature-icon--team">
+                <i className="ri-team-fill"></i>
               </div>
-              <h3 className="text-2xl font-bold mb-4 text-white">
+              <h3 className="landing-page__feature-title">
                 Real-time Collaboration
               </h3>
-              <p className="text-gray-300 leading-relaxed">
+              <p className="landing-page__feature-description">
                 Work seamlessly with your team. Share projects, collaborate in
-                real-time, and build together.
+                real-time, and build together with live code synchronization.
               </p>
             </div>
 
-            <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-8 hover:bg-slate-800/50 transition-all duration-300 group">
-              <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                <i className="ri-rocket-fill text-2xl text-white"></i>
+            <div className="landing-page__feature-card spotlight-card group">
+              <div className="landing-page__feature-icon landing-page__feature-icon--deploy">
+                <i className="ri-rocket-fill"></i>
               </div>
-              <h3 className="text-2xl font-bold mb-4 text-white">
+              <h3 className="landing-page__feature-title">
                 Instant Deployment
               </h3>
-              <p className="text-gray-300 leading-relaxed">
+              <p className="landing-page__feature-description">
                 Deploy your projects instantly with our integrated cloud
-                platform. From code to production in seconds.
+                platform. From code to production in seconds with zero config.
               </p>
             </div>
           </div>
@@ -357,7 +649,9 @@ const Landing = () => {
                 </div>
               </div>
               <p className="text-gray-200 italic">
-                "DevinAI has revolutionized how I code. The AI suggestions are incredibly accurate and save me hours every day."
+                              <p className="text-gray-300 mb-6 leading-relaxed">
+                "DevMate AI has revolutionized how I code. The AI suggestions are incredibly accurate and save me hours every day."
+              </p>
               </p>
             </div>
 
@@ -404,14 +698,9 @@ const Landing = () => {
             AI-powered coding.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link
-              to="/signup"
-              className="px-12 py-5 bg-gradient-to-r from-gray-800 to-gray-700to-purple-800
-                hover:from-indigo-950 hover:to-purple-700 rounded-lg font-semibold text-lg text-white transition-transform duration-300 transform hover:scale-105 hover:shadow-lg shadow-gray-900/50"
-              style={{ textShadow: "0 2px 6px rgba(0, 0, 0, 0.8)" }}
-            >
+            <Link to="/signup" className="landing-page__hero-cta-primary">
               Start Your Journey
-              <i className="ri-arrow-right-line ml-3"></i>
+              <i className="ri-arrow-right-line"></i>
             </Link>
 
             <Link
