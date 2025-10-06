@@ -1,7 +1,9 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const APIKEY = process.env.API_KEY;
-const genAI = new GoogleGenerativeAI(APIKEY || "AIzaSyBILtR96krnlBbA1TvhbFTyCr6cnblbyN4");
+const genAI = new GoogleGenerativeAI(
+  APIKEY || "AIzaSyBILtR96krnlBbA1TvhbFTyCr6cnblbyN4"
+);
 
 // Initialize the model
 const model = genAI.getGenerativeModel({
@@ -174,26 +176,35 @@ response: {
 - Only include fileTree when creating/modifying files
 - For chat/questions, only include "text" field
 
-🔧 VALIDATION: Your response goes directly to JSON.parse() - ensure 100% valid JSON.`
+🔧 VALIDATION: Your response goes directly to JSON.parse() - ensure 100% valid JSON.`,
 });
 
 // Function to generate response
-export const generateResult = async (prompt) => {
+export const generateResult = async (prompt, sessionId) => {
   try {
-    console.log("AI received prompt:", prompt);
-    const result = await model.generateContent(prompt);
-    const rawResponse = result.response.text();
+    const dummySessionId = sessionId || "test-session-123";
+    console.log("AI received prompt:", prompt, "Session ID:", dummySessionId);
+    const response = await fetch(
+      "https://vishalpukharajjangid.app.n8n.cloud/webhook/580db929-a5be-419f-8895-dc4da9854008/chat",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ chatInput: prompt, sessionId: dummySessionId }),
+      }
+    );
 
-    console.log("Raw AI response length:", rawResponse.length);
-    console.log("Response ends with:", rawResponse.slice(-10));
+    const rawResponse = await response.text();
+    const requiredResponse = JSON.parse(rawResponse).output;
 
-    return rawResponse;
+    return requiredResponse;
   } catch (error) {
     console.error("Error generating content:", error);
     return JSON.stringify({
       text: "An error occurred while generating the result.",
       error: true,
-      errorMessage: error.message
+      errorMessage: error.message,
     });
   }
 };
