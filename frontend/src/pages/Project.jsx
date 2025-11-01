@@ -461,7 +461,7 @@ const Project = () => {
         isOpen={showVersionSelector}
         onClose={() => setShowVersionSelector(false)}
         versions={projectVersions}
-        onSelectVersion={(selectedVersion, index) => {
+        onSelectVersion={(selectedVersion) => {
           handleLoadProjectVersion(selectedVersion);
           setShowVersionSelector(false);
         }}
