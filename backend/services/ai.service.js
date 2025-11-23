@@ -1,29 +1,59 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+// ============== GEMINI IMPLEMENTATION (COMMENTED OUT) ==============
+// import { GoogleGenerativeAI } from "@google/generative-ai";
+// 
+// const APIKEY = process.env.API_KEY;
+// const genAI = new GoogleGenerativeAI(
+//   APIKEY || "AIzaSyBILtR96krnlBbA1TvhbFTyCr6cnblbyN4"
+// );
+// 
+// // Initialize the model
+// const model = genAI.getGenerativeModel({
+//   model: "gemini-2.5-flash",
+//   generationConfig: {
+//     responseMimeType: "application/json",
+//     temperature: 0.4,
+//     maxOutputTokens: 4096,
+//   },
+//   systemInstruction: `[SYSTEM INSTRUCTION CONTENT - see below]`
+// });
+// ====================================================================
 
-const APIKEY = process.env.API_KEY;
-const genAI = new GoogleGenerativeAI(
-  APIKEY || "AIzaSyBILtR96krnlBbA1TvhbFTyCr6cnblbyN4"
-);
+// ============== GROQ IMPLEMENTATION (ACTIVE) ==============
+import OpenAI from "openai";
+import dotenv from "dotenv";
+dotenv.config();
 
-// Initialize the model
-const model = genAI.getGenerativeModel({
-  model: "gemini-2.5-flash",
-  generationConfig: {
-    responseMimeType: "application/json",
-    temperature: 0.4,
-    maxOutputTokens: 4096, // Reduced to prevent truncation issues
-  },
-  systemInstruction: `You are an expert full-stack developer with over 10 years of experience in modern web development. You are proficient in React, Vue.js, Next.js, Express.js, Node.js, Python, PHP, and all major web frameworks. You write clean, modular, scalable, and maintainable code following industry best practices. You adapt your code structure and dependencies based on what the user specifically requests.
+const client = new OpenAI({
+  apiKey: process.env.Groq_API_KEY,
+  baseURL: "https://api.groq.com/openai/v1",
+});
+
+// System instruction (same as Gemini)
+const systemInstruction = `You are an expert full-stack developer with over 10 years of experience in modern web development. You are proficient in React, Vue.js, Next.js, Express.js, Node.js, Python, PHP, and all major web frameworks. You write clean, modular, scalable, and maintainable code following industry best practices. You adapt your code structure and dependencies based on what the user specifically requests.
 
 When the user requests a project (like "Create a React calculator", "Build a Vue todo app", "Make a Next.js blog", "Create an Express API"), analyze their request carefully and generate the appropriate file structure for that specific technology stack.
 
 🔧 CRITICAL: Keep responses under 6000 characters to avoid truncation. Create simple, functional code.
+
+🔧 EXISTING FILES CONTEXT: You will be provided with EXISTING PROJECT FILES in the prompt. When modifying files:
+- **PRESERVE ALL EXISTING FUNCTIONALITY** - Only modify what the user asks to change
+- **DO NOT REVERT FEATURES** - If a file has advanced features (like scientific calculator), keep them unless explicitly asked to remove
+- **INCREMENTAL UPDATES** - Add/modify only the requested changes, don't rewrite from scratch
+- **ANALYZE CURRENT CODE** - Read and understand the existing code before making changes
+- **FILE LIST IS CURRENT STATE** - The EXISTING FILES list shows ONLY currently active files (deleted files are NOT included)
+- **RECREATING FILES** - If a file is NOT in the EXISTING FILES list, you CAN create it even if it existed before (it was deleted)
+- Example: If user says "improve CSS", only modify CSS files, keep all JS functionality intact
 
 🔧 IMPORTANT: Only include a "fileTree" in your response when the user is asking you to CREATE, MODIFY, UPDATE, or DELETE files. For general questions, explanations, or chat interactions, only include the "text" field without a "fileTree".
 
 🔧 FILE DELETION: When the user asks to delete a file, include it in the fileTree with a special structure:
 - Use "file": { "deleted": true } to mark a file for deletion
 - Example: "README.md": { "file": { "deleted": true } }
+
+🔧 FILE CREATION: When the user asks to create or add a file:
+- Check if the file exists in the EXISTING PROJECT FILES list
+- If NOT in the list, create it normally (even if it was previously deleted)
+- If in the list, treat it as a modification request
 
 🔧 FRAMEWORK DETECTION: Based on user's request, automatically detect and use the correct:
 - File extensions (.jsx for React, .vue for Vue, .js for vanilla/Node, .ts for TypeScript)
@@ -176,29 +206,43 @@ response: {
 - Only include fileTree when creating/modifying files
 - For chat/questions, only include "text" field
 
-🔧 VALIDATION: Your response goes directly to JSON.parse() - ensure 100% valid JSON.`,
-});
+🔧 VALIDATION: Your response goes directly to JSON.parse() - ensure 100% valid JSON.`;
 
 // Function to generate response
-export const generateResult = async (prompt, sessionId) => {
+export const generateResult = async (prompt) => {
   try {
-    const dummySessionId = sessionId || "test-session-123";
-    console.log("AI received prompt:", prompt, "Session ID:", dummySessionId);
-    const response = await fetch(
-      "https://vishalpukharajjangid.app.n8n.cloud/webhook/580db929-a5be-419f-8895-dc4da9854008/chat",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+    console.log("AI received prompt:", prompt);
+
+    // ============== GROQ IMPLEMENTATION (ACTIVE) ==============
+    const response = await client.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        {
+          role: "system",
+          content: systemInstruction
         },
-        body: JSON.stringify({ chatInput: prompt, sessionId: dummySessionId }),
-      }
-    );
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      temperature: 0.4,
+      max_tokens: 4096,
+      response_format: { type: "json_object" }
+    });
 
-    const rawResponse = await response.text();
-    const requiredResponse = JSON.parse(rawResponse).output;
+    const rawResponse = response.choices[0].message.content;
+    // ============================================================
 
-    return requiredResponse;
+    // ============== GEMINI IMPLEMENTATION (COMMENTED OUT) ==============
+    // const result = await model.generateContent(prompt);
+    // const rawResponse = result.response.text();
+    // ===================================================================
+
+    console.log("Raw AI response length:", rawResponse.length);
+    console.log("Response ends with:", rawResponse.slice(-10));
+
+    return rawResponse;
   } catch (error) {
     console.error("Error generating content:", error);
     return JSON.stringify({

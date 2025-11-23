@@ -298,12 +298,40 @@ export const getresultaiController = async (req, res) => {
     if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) {
       return res.status(400).json({ message: "Valid projectId is required" });
     }
-    const sessionId = req.user.id; // Placeholder for session management if needed
-    const result = await generateResult(prompt, sessionId);
-    console.log(
-      "Raw result from AI service:",
-      result.substring(0, 200) + "..."
-    );
+
+    // 🔧 FETCH EXISTING FILES TO PROVIDE CONTEXT TO AI
+    let enhancedPrompt = prompt;
+    const existingFiles = await FileVersion.find({
+      projectId,
+      isDeleted: false
+    }).sort({ timestamp: -1 });
+
+    if (existingFiles.length > 0) {
+      console.log(`📂 Found ${existingFiles.length} existing files, adding to context`);
+
+      // Build a map of latest file versions by path
+      const fileMap = new Map();
+      for (const file of existingFiles) {
+        if (!fileMap.has(file.filePath)) {
+          fileMap.set(file.filePath, file.content);
+        }
+      }
+
+      // Format existing files for AI context
+      const filesContext = Array.from(fileMap.entries()).map(([path, content]) =>
+        `FILE: ${path}\nCONTENT:\n${content}\n---`
+      ).join('\n\n');
+
+      enhancedPrompt = `EXISTING PROJECT FILES:
+${filesContext}
+
+USER REQUEST: ${prompt}
+
+IMPORTANT: The above files are the CURRENT state of the project. When the user asks to modify, improve, or update anything, you MUST preserve all existing functionality and only make the specific changes requested. DO NOT recreate files from scratch - modify the existing code.`;
+    }
+
+    const result = await generateResult(enhancedPrompt);
+    console.log("Raw result from AI service:", result.substring(0, 200) + "...");
     // Save any generated code as file versions
     const saveResult = await saveGeneratedCodeAsVersions(result, projectId);
     res.json({ result: saveResult.processedResult });
@@ -480,8 +508,7 @@ const createProjectVersion = async (projectId, messageId, description = "") => {
     });
 
     console.log(
-      `✅ Created project version ${projectVersion.version} with ${
-        Object.keys(fileTree).length
+      `✅ Created project version ${projectVersion.version} with ${Object.keys(fileTree).length
       } files`
     );
     return projectVersion;
@@ -507,11 +534,42 @@ export const getResultForSocket = async (
         error: true,
       });
     }
-    const result = await generateResult(prompt, projectId);
-    console.log(
-      "Raw result from AI service:",
-      result.substring(0, 200) + "..."
-    );
+
+    // 🔧 FETCH EXISTING FILES TO PROVIDE CONTEXT TO AI
+    let enhancedPrompt = prompt;
+    if (projectId && mongoose.Types.ObjectId.isValid(projectId)) {
+      const existingFiles = await FileVersion.find({
+        projectId,
+        isDeleted: false
+      }).sort({ timestamp: -1 });
+
+      if (existingFiles.length > 0) {
+        console.log(`📂 Found ${existingFiles.length} existing files, adding to context`);
+
+        // Build a map of latest file versions by path
+        const fileMap = new Map();
+        for (const file of existingFiles) {
+          if (!fileMap.has(file.filePath)) {
+            fileMap.set(file.filePath, file.content);
+          }
+        }
+
+        // Format existing files for AI context
+        const filesContext = Array.from(fileMap.entries()).map(([path, content]) =>
+          `FILE: ${path}\nCONTENT:\n${content}\n---`
+        ).join('\n\n');
+
+        enhancedPrompt = `EXISTING PROJECT FILES:
+${filesContext}
+
+USER REQUEST: ${prompt}
+
+IMPORTANT: The above files are the CURRENT state of the project. When the user asks to modify, improve, or update anything, you MUST preserve all existing functionality and only make the specific changes requested. DO NOT recreate files from scratch - modify the existing code.`;
+      }
+    }
+
+    const result = await generateResult(enhancedPrompt);
+    console.log("Raw result from AI service:", result.substring(0, 200) + "...");
     // Save any generated code as file versions if projectId is provided
     if (projectId && mongoose.Types.ObjectId.isValid(projectId)) {
       console.log("📁 Valid project ID, saving file versions...");
