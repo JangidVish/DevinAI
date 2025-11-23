@@ -298,7 +298,6 @@ export const getresultaiController = async (req, res) => {
     if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) {
       return res.status(400).json({ message: "Valid projectId is required" });
     }
-<<<<<<< HEAD
 
     // 🔧 FETCH EXISTING FILES TO PROVIDE CONTEXT TO AI
     let enhancedPrompt = prompt;
@@ -333,14 +332,6 @@ IMPORTANT: The above files are the CURRENT state of the project. When the user a
 
     const result = await generateResult(enhancedPrompt);
     console.log("Raw result from AI service:", result.substring(0, 200) + "...");
-=======
-    const sessionId = req.user.id; // Placeholder for session management if needed
-    const result = await generateResult(prompt, sessionId);
-    console.log(
-      "Raw result from AI service:",
-      result.substring(0, 200) + "..."
-    );
->>>>>>> 113e8f0ddc9191d7532af487077840b679cba1be
     // Save any generated code as file versions
     const saveResult = await saveGeneratedCodeAsVersions(result, projectId);
     res.json({ result: saveResult.processedResult });
@@ -517,8 +508,7 @@ const createProjectVersion = async (projectId, messageId, description = "") => {
     });
 
     console.log(
-      `✅ Created project version ${projectVersion.version} with ${
-        Object.keys(fileTree).length
+      `✅ Created project version ${projectVersion.version} with ${Object.keys(fileTree).length
       } files`
     );
     return projectVersion;
@@ -544,7 +534,6 @@ export const getResultForSocket = async (
         error: true,
       });
     }
-<<<<<<< HEAD
 
     // 🔧 FETCH EXISTING FILES TO PROVIDE CONTEXT TO AI
     let enhancedPrompt = prompt;
@@ -581,13 +570,6 @@ IMPORTANT: The above files are the CURRENT state of the project. When the user a
 
     const result = await generateResult(enhancedPrompt);
     console.log("Raw result from AI service:", result.substring(0, 200) + "...");
-=======
-    const result = await generateResult(prompt, projectId);
-    console.log(
-      "Raw result from AI service:",
-      result.substring(0, 200) + "..."
-    );
->>>>>>> 113e8f0ddc9191d7532af487077840b679cba1be
     // Save any generated code as file versions if projectId is provided
     if (projectId && mongoose.Types.ObjectId.isValid(projectId)) {
       console.log("📁 Valid project ID, saving file versions...");

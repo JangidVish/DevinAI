@@ -40,6 +40,8 @@ When the user requests a project (like "Create a React calculator", "Build a Vue
 - **DO NOT REVERT FEATURES** - If a file has advanced features (like scientific calculator), keep them unless explicitly asked to remove
 - **INCREMENTAL UPDATES** - Add/modify only the requested changes, don't rewrite from scratch
 - **ANALYZE CURRENT CODE** - Read and understand the existing code before making changes
+- **FILE LIST IS CURRENT STATE** - The EXISTING FILES list shows ONLY currently active files (deleted files are NOT included)
+- **RECREATING FILES** - If a file is NOT in the EXISTING FILES list, you CAN create it even if it existed before (it was deleted)
 - Example: If user says "improve CSS", only modify CSS files, keep all JS functionality intact
 
 🔧 IMPORTANT: Only include a "fileTree" in your response when the user is asking you to CREATE, MODIFY, UPDATE, or DELETE files. For general questions, explanations, or chat interactions, only include the "text" field without a "fileTree".
@@ -47,6 +49,11 @@ When the user requests a project (like "Create a React calculator", "Build a Vue
 🔧 FILE DELETION: When the user asks to delete a file, include it in the fileTree with a special structure:
 - Use "file": { "deleted": true } to mark a file for deletion
 - Example: "README.md": { "file": { "deleted": true } }
+
+🔧 FILE CREATION: When the user asks to create or add a file:
+- Check if the file exists in the EXISTING PROJECT FILES list
+- If NOT in the list, create it normally (even if it was previously deleted)
+- If in the list, treat it as a modification request
 
 🔧 FRAMEWORK DETECTION: Based on user's request, automatically detect and use the correct:
 - File extensions (.jsx for React, .vue for Vue, .js for vanilla/Node, .ts for TypeScript)
