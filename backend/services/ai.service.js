@@ -1,21 +1,46 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+// ============== GEMINI IMPLEMENTATION (COMMENTED OUT) ==============
+// import { GoogleGenerativeAI } from "@google/generative-ai";
+// 
+// const APIKEY = process.env.API_KEY;
+// const genAI = new GoogleGenerativeAI(
+//   APIKEY || "AIzaSyBILtR96krnlBbA1TvhbFTyCr6cnblbyN4"
+// );
+// 
+// // Initialize the model
+// const model = genAI.getGenerativeModel({
+//   model: "gemini-2.5-flash",
+//   generationConfig: {
+//     responseMimeType: "application/json",
+//     temperature: 0.4,
+//     maxOutputTokens: 4096,
+//   },
+//   systemInstruction: `[SYSTEM INSTRUCTION CONTENT - see below]`
+// });
+// ====================================================================
 
-const APIKEY = process.env.API_KEY;
-const genAI = new GoogleGenerativeAI(APIKEY || "AIzaSyBILtR96krnlBbA1TvhbFTyCr6cnblbyN4");
+// ============== GROQ IMPLEMENTATION (ACTIVE) ==============
+import OpenAI from "openai";
+import dotenv from "dotenv";
+dotenv.config();
 
-// Initialize the model
-const model = genAI.getGenerativeModel({
-  model: "gemini-2.5-flash",
-  generationConfig: {
-    responseMimeType: "application/json",
-    temperature: 0.4,
-    maxOutputTokens: 4096, // Reduced to prevent truncation issues
-  },
-  systemInstruction: `You are an expert full-stack developer with over 10 years of experience in modern web development. You are proficient in React, Vue.js, Next.js, Express.js, Node.js, Python, PHP, and all major web frameworks. You write clean, modular, scalable, and maintainable code following industry best practices. You adapt your code structure and dependencies based on what the user specifically requests.
+const client = new OpenAI({
+  apiKey: process.env.Groq_API_KEY,
+  baseURL: "https://api.groq.com/openai/v1",
+});
+
+// System instruction (same as Gemini)
+const systemInstruction = `You are an expert full-stack developer with over 10 years of experience in modern web development. You are proficient in React, Vue.js, Next.js, Express.js, Node.js, Python, PHP, and all major web frameworks. You write clean, modular, scalable, and maintainable code following industry best practices. You adapt your code structure and dependencies based on what the user specifically requests.
 
 When the user requests a project (like "Create a React calculator", "Build a Vue todo app", "Make a Next.js blog", "Create an Express API"), analyze their request carefully and generate the appropriate file structure for that specific technology stack.
 
 🔧 CRITICAL: Keep responses under 6000 characters to avoid truncation. Create simple, functional code.
+
+🔧 EXISTING FILES CONTEXT: You will be provided with EXISTING PROJECT FILES in the prompt. When modifying files:
+- **PRESERVE ALL EXISTING FUNCTIONALITY** - Only modify what the user asks to change
+- **DO NOT REVERT FEATURES** - If a file has advanced features (like scientific calculator), keep them unless explicitly asked to remove
+- **INCREMENTAL UPDATES** - Add/modify only the requested changes, don't rewrite from scratch
+- **ANALYZE CURRENT CODE** - Read and understand the existing code before making changes
+- Example: If user says "improve CSS", only modify CSS files, keep all JS functionality intact
 
 🔧 IMPORTANT: Only include a "fileTree" in your response when the user is asking you to CREATE, MODIFY, UPDATE, or DELETE files. For general questions, explanations, or chat interactions, only include the "text" field without a "fileTree".
 
@@ -175,14 +200,38 @@ response: {
 - For chat/questions, only include "text" field
 
 🔧 VALIDATION: Your response goes directly to JSON.parse() - ensure 100% valid JSON.`
-});
+  ;
 
 // Function to generate response
 export const generateResult = async (prompt) => {
   try {
     console.log("AI received prompt:", prompt);
-    const result = await model.generateContent(prompt);
-    const rawResponse = result.response.text();
+
+    // ============== GROQ IMPLEMENTATION (ACTIVE) ==============
+    const response = await client.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: [
+        {
+          role: "system",
+          content: systemInstruction
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      temperature: 0.4,
+      max_tokens: 4096,
+      response_format: { type: "json_object" }
+    });
+
+    const rawResponse = response.choices[0].message.content;
+    // ============================================================
+
+    // ============== GEMINI IMPLEMENTATION (COMMENTED OUT) ==============
+    // const result = await model.generateContent(prompt);
+    // const rawResponse = result.response.text();
+    // ===================================================================
 
     console.log("Raw AI response length:", rawResponse.length);
     console.log("Response ends with:", rawResponse.slice(-10));
