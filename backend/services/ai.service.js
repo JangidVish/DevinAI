@@ -18,17 +18,10 @@
 // });
 // ====================================================================
 
-<<<<<<< HEAD
 // ============== GROQ IMPLEMENTATION (ACTIVE) ==============
 import OpenAI from "openai";
 import dotenv from "dotenv";
 dotenv.config();
-=======
-const APIKEY = process.env.API_KEY;
-const genAI = new GoogleGenerativeAI(
-  APIKEY || "AIzaSyBILtR96krnlBbA1TvhbFTyCr6cnblbyN4"
-);
->>>>>>> 113e8f0ddc9191d7532af487077840b679cba1be
 
 const client = new OpenAI({
   apiKey: process.env.Groq_API_KEY,
@@ -206,18 +199,11 @@ response: {
 - Only include fileTree when creating/modifying files
 - For chat/questions, only include "text" field
 
-<<<<<<< HEAD
-🔧 VALIDATION: Your response goes directly to JSON.parse() - ensure 100% valid JSON.`
-  ;
-=======
-🔧 VALIDATION: Your response goes directly to JSON.parse() - ensure 100% valid JSON.`,
-});
->>>>>>> 113e8f0ddc9191d7532af487077840b679cba1be
+🔧 VALIDATION: Your response goes directly to JSON.parse() - ensure 100% valid JSON.`;
 
 // Function to generate response
-export const generateResult = async (prompt, sessionId) => {
+export const generateResult = async (prompt) => {
   try {
-<<<<<<< HEAD
     console.log("AI received prompt:", prompt);
 
     // ============== GROQ IMPLEMENTATION (ACTIVE) ==============
@@ -245,20 +231,7 @@ export const generateResult = async (prompt, sessionId) => {
     // const result = await model.generateContent(prompt);
     // const rawResponse = result.response.text();
     // ===================================================================
-=======
-    const dummySessionId = sessionId || "test-session-123";
-    console.log("AI received prompt:", prompt, "Session ID:", dummySessionId);
-    const response = await fetch(
-      "https://vishalpukharajjangid.app.n8n.cloud/webhook/580db929-a5be-419f-8895-dc4da9854008/chat",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ chatInput: prompt, sessionId: dummySessionId }),
-      }
-    );
-    
+
     console.log("Raw AI response length:", rawResponse.length);
     console.log("Response ends with:", rawResponse.slice(-10));
 
